@@ -12,7 +12,7 @@ use PhpDb\Mysql\Pdo\Driver;
 return [
     AdapterInterface::class => [
         // Using the PDO driver instead of PhpDb\Mysql\Driver (mysqli) to sidestep a
-        // confirmed upstream bug — see docs/failure-notes.md entry #9. The PDO driver's
+        // confirmed upstream bug — see docs/failure-notes.md entry #6. The PDO driver's
         // Statement::__clone() correctly deep-clones its ParameterContainer; the mysqli
         // driver's Statement does not, causing bound parameters to leak across queries.
         'driver'     => Driver::class,
