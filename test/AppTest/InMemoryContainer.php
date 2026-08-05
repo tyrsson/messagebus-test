@@ -18,11 +18,6 @@ final class InMemoryContainer implements ContainerInterface
     /** @var array<string, mixed> */
     public array $services = [];
 
-    public function setService(string $name, mixed $service): void
-    {
-        $this->services[$name] = $service;
-    }
-
     public function get(string $id): mixed
     {
         if (! $this->has($id)) {
@@ -35,5 +30,10 @@ final class InMemoryContainer implements ContainerInterface
     public function has(string $id): bool
     {
         return array_key_exists($id, $this->services);
+    }
+
+    public function setService(string $name, mixed $service): void
+    {
+        $this->services[$name] = $service;
     }
 }

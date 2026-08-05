@@ -10,9 +10,16 @@
          failOnDeprecation="true"
          failOnWarning="true">
 
+    <extensions>
+        <bootstrap class="IntegrationTest\Extension\ListenerExtension" />
+    </extensions>
     <testsuites>
         <testsuite name="default">
             <directory>test</directory>
+            <exclude>test/integration</exclude>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>test/integration</directory>
         </testsuite>
     </testsuites>
     <source restrictNotices="true">

@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+use PhpDb\Adapter\AdapterInterface;
+use PhpDb\Mysql\Pdo\Driver;
+
+// NOTE: docs/book/application-integration/usage-in-a-mezzio-application.md in
+// php-db/phpdb is stale — it documents a top-level 'db' key, but
+// PhpDb\Container\AdapterInterfaceFactory actually reads config keyed by
+// AdapterInterface::class (see vendor/php-db/phpdb/src/Container/AdapterInterfaceFactory.php).
+return [
+    AdapterInterface::class => [
+        // Using the PDO driver instead of PhpDb\Mysql\Driver (mysqli) to sidestep a
+        // confirmed upstream bug — see docs/failure-notes.md entry #9. The PDO driver's
+        // Statement::__clone() correctly deep-clones its ParameterContainer; the mysqli
+        // driver's Statement does not, causing bound parameters to leak across queries.
+        'driver'     => Driver::class,
+        'connection' => [
+            // 'localhost' makes mysqli attempt a local unix socket instead of TCP,
+            // which fails when mysql only listens via the docker-compose port mapping.
+            'hostname'       => '127.0.0.1',
+            'username'       => 'messagebus_event_test',
+            'password'       => 'messagebus_event_test',
+            'database'       => 'messagebus_event_test',
+            'port'           => 3306,
+            'charset'        => 'utf8',
+            'driver_options' => [],
+        ],
+        'options'    => [
+            'buffer_results' => false,
+        ],
+    ],
+];

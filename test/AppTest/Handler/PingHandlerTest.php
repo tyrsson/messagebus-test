@@ -24,7 +24,7 @@ final class PingHandlerTest extends TestCase
     {
         $pingHandler = new PingHandler();
         $response    = $pingHandler->handle(
-            $this->createMock(ServerRequestInterface::class)
+            $this->createStub(ServerRequestInterface::class),
         );
 
         /** @var object{ack: string} $json */

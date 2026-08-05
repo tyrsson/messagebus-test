@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Mezzio Bleeding Edge Skeleton App.
+ *
+ * Copyright (c) 2025-2026 Joey Smith <jsmith@webinertia.net>
+ * and contributors.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+use App\Ddl\NotesTable;
+use PhpDb\Adapter\AdapterInterface;
+
+chdir(__DIR__ . '/../');
+
+require 'vendor/autoload.php';
+
+// config/autoload/*.local.php is gitignored, so a fresh install won't have it.
+$mysqlLocalConfig     = 'config/autoload/mysql.local.php';
+$mysqlLocalConfigDist = "{$mysqlLocalConfig}.dist";
+
+if (! file_exists($mysqlLocalConfig) && file_exists($mysqlLocalConfigDist)) {
+    copy($mysqlLocalConfigDist, $mysqlLocalConfig);
+    echo "Created {$mysqlLocalConfig} from {$mysqlLocalConfigDist}." . PHP_EOL;
+}
+
+/** @var \Psr\Container\ContainerInterface $container */
+$container = require 'config/container.php';
+
+NotesTable::createIfNotExists($container->get(AdapterInterface::class));
+
+echo 'notes table ready' . PHP_EOL;

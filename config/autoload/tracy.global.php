@@ -16,9 +16,13 @@ use Tracy\Debugger;
 
 return [
     Debugger::class => [
-        'enable'       => Debugger::Development, // or Debugger::Production - disables tracy in production
+        'enable' => Debugger::Development, // or Debugger::Production - disables tracy in production
         'dumpTheme'    => 'light',
         'showLocation' => true,
+        // Must be absolute: Tracy\Debugger::enable() rejects a relative logDirectory
+        // if $logDirectory was already set by a prior enable()/property assignment in
+        // the same process (e.g. across test suites), regardless of CWD.
+        'logDirectory' => dirname(__DIR__, 2) . '/data/log',
         'keysToHide'   => [
             'password',
             'pass',

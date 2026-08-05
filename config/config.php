@@ -13,39 +13,42 @@ $cacheConfig = [
     'config_cache_path' => 'data/cache/config-cache.php',
 ];
 
-$aggregator = new ConfigAggregator([
-    \Webware\MessageBus\Event\ConfigProvider::class,
-    \Phly\EventDispatcher\ConfigProvider::class,
-    PhpDb\ConfigProvider::class,
-    \PhpDb\Mysql\ConfigProvider::class,
-    Laminas\View\ConfigProvider::class,
-    Mezzio\LaminasView\ConfigProvider::class,
-    Laminas\ServiceManager\ConfigProvider::class,
-    Mezzio\Router\FastRouteRouter\ConfigProvider::class,
-    Laminas\HttpHandlerRunner\ConfigProvider::class,
-    // Include cache configuration
-    new ArrayProvider($cacheConfig),
-    Mezzio\Helper\ConfigProvider::class,
-    Mezzio\ConfigProvider::class,
-    Mezzio\Router\ConfigProvider::class,
-    Laminas\Diactoros\ConfigProvider::class,
-    class_exists(Webware\Traccio\ConfigProvider::class, )
-        ? Webware\Traccio\ConfigProvider::class
-        : function () {
-            return [];
-        },
-    // Default App module config
-    ConfigProvider::class,
-    \Mysql\ConfigProvider::class,
-    // Load application config in a pre-defined order in such a way that local settings
-    // overwrite global settings. (Loaded as first to last):
-    //   - `global.php`
-    //   - `*.global.php`
-    //   - `local.php`
-    //   - `*.local.php`
-    new PhpFileProvider(realpath(__DIR__) . '/autoload/{{,*.}global,{,*.}local}.php'),
-    // Load development config if it exists
-    new PhpFileProvider(realpath(__DIR__) . '/development.config.php'),
-], $cacheConfig['config_cache_path']);
+$aggregator = new ConfigAggregator(
+    [
+        \Webware\MessageBus\ConfigProvider::class,
+        \Webware\MessageBus\Event\ConfigProvider::class,
+        \Phly\EventDispatcher\ConfigProvider::class,
+        PhpDb\ConfigProvider::class,
+        \PhpDb\Mysql\ConfigProvider::class,
+        Laminas\View\ConfigProvider::class,
+        Mezzio\LaminasView\ConfigProvider::class,
+        Laminas\ServiceManager\ConfigProvider::class,
+        Mezzio\Router\FastRouteRouter\ConfigProvider::class,
+        Laminas\HttpHandlerRunner\ConfigProvider::class,
+        // Include cache configuration
+        new ArrayProvider($cacheConfig),
+        Mezzio\Helper\ConfigProvider::class,
+        Mezzio\ConfigProvider::class,
+        Mezzio\Router\ConfigProvider::class,
+        Laminas\Diactoros\ConfigProvider::class,
+        class_exists(Webware\Traccio\ConfigProvider::class)
+            ? Webware\Traccio\ConfigProvider::class
+            : function () {
+                return [];
+            },
+        // Default App module config
+        ConfigProvider::class,
+        // Load application config in a pre-defined order in such a way that local settings
+        // overwrite global settings. (Loaded as first to last):
+        //   - `global.php`
+        //   - `*.global.php`
+        //   - `local.php`
+        //   - `*.local.php`
+        new PhpFileProvider(realpath(__DIR__) . '/autoload/{{,*.}global,{,*.}local}.php'),
+        // Load development config if it exists
+        new PhpFileProvider(realpath(__DIR__) . '/development.config.php'),
+    ],
+    $cacheConfig['config_cache_path'],
+);
 
 return $aggregator->getMergedConfig();
