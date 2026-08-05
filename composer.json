@@ -26,7 +26,9 @@
         "mezzio/mezzio-fastroute": "^3.14",
         "mezzio/mezzio-helpers": "^5.20",
         "mezzio/mezzio-laminasviewrenderer": "^3.0",
-        "php-db/phpdb-mysql":"^0.3.0",
+        "php-db/phpdb-mysql": "0.4.x-dev",
+        "php-standard-library/type": "^6.2",
+        "webware/message-bus": "^0.1.1",
         "webware/messagebus-event": "^0.1.x-dev"
     },
     "require-dev": {
@@ -36,13 +38,13 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/App/src/",
-            "Mysql\\": "src/Mysql/src/"
+            "App\\": "src/App/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "AppTest\\": "test/AppTest/"
+            "AppTest\\": "test/AppTest/",
+            "IntegrationTest\\": "test/integration/"
         }
     },
     "minimum-stability": "dev",
@@ -61,9 +63,12 @@
             "@test",
             "@test-integration"
         ],
-        "clear-config-cache": "php bin/clear-config-cache.php",
+        "clear-config-cache": "php bin/clear-config-cache",
         "cs-check": "vendor/bin/php-cs-fixer check",
         "cs-fix": "vendor/bin/php-cs-fixer fix",
+        "development-disable": "php bin/development-mode --disable",
+        "development-enable": "php bin/development-mode --enable",
+        "development-status": "php bin/development-mode --status",
         "test": "phpunit --colors=always",
         "test-integration": "phpunit --colors=always --testsuite integration",
         "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",

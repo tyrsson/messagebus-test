@@ -17,35 +17,34 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversMethod(HomePageHandler::class, 'handle')]
 final class HomePageHandlerTest extends TestCase
 {
-    public function testReturnsJsonResponseWhenNoTemplateRendererProvided(): void
-    {
-        $homePage = new HomePageHandler(
-            null
-        );
-        $response = $homePage->handle(
-            $this->createMock(ServerRequestInterface::class)
-        );
-
-        self::assertInstanceOf(JsonResponse::class, $response);
-    }
-
     public function testReturnsHtmlResponseWhenTemplateRendererProvided(): void
     {
         $renderer = $this->createMock(TemplateRendererInterface::class);
-        $renderer
-            ->expects($this->once())
+        $renderer->expects($this->once())
             ->method('render')
             ->with('app::home-page', $this->isArray())
             ->willReturn('');
 
         $homePage = new HomePageHandler(
-            $renderer
+            $renderer,
         );
 
         $response = $homePage->handle(
-            $this->createMock(ServerRequestInterface::class)
+            $this->createStub(ServerRequestInterface::class),
         );
 
         self::assertInstanceOf(HtmlResponse::class, $response);
+    }
+
+    public function testReturnsJsonResponseWhenNoTemplateRendererProvided(): void
+    {
+        $homePage = new HomePageHandler(
+            null,
+        );
+        $response = $homePage->handle(
+            $this->createStub(ServerRequestInterface::class),
+        );
+
+        self::assertInstanceOf(JsonResponse::class, $response);
     }
 }

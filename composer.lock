@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "48e14456795995e230f19f7ad75b5c50",
+    "content-hash": "f2016c0aeb616cd5c9e16c3db584a526",
     "packages": [
         {
             "name": "brick/varexporter",
@@ -1539,16 +1539,16 @@
         },
         {
             "name": "php-db/phpdb-mysql",
-            "version": "0.3.0",
+            "version": "0.4.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-db/phpdb-mysql.git",
-                "reference": "8421ff7cf3ecd742acd5e8dc49eea1d297f89801"
+                "reference": "293ca1e03fc8b7fb7147d4d65715fa9e8f092f88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-db/phpdb-mysql/zipball/8421ff7cf3ecd742acd5e8dc49eea1d297f89801",
-                "reference": "8421ff7cf3ecd742acd5e8dc49eea1d297f89801",
+                "url": "https://api.github.com/repos/php-db/phpdb-mysql/zipball/293ca1e03fc8b7fb7147d4d65715fa9e8f092f88",
+                "reference": "293ca1e03fc8b7fb7147d4d65715fa9e8f092f88",
                 "shasum": ""
             },
             "require": {
@@ -1568,6 +1568,7 @@
                 "ext-pdo_mysql": "Required for PDO MySQL support",
                 "laminas/laminas-eventmanager": "Required for TableGateway events support"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laminas": {
@@ -1597,7 +1598,7 @@
                 "issues": "https://github.com/php-db/phpdb-mysql/issues",
                 "source": "https://github.com/php-db/phpdb-mysql"
             },
-            "time": "2026-03-20T00:17:35+00:00"
+            "time": "2026-06-23T02:33:37+00:00"
         },
         {
             "name": "php-standard-library/collection",
@@ -2580,6 +2581,67 @@
                 "source": "https://github.com/webmozarts/assert/tree/2.4.1"
             },
             "time": "2026-06-15T15:31:57+00:00"
+        },
+        {
+            "name": "webware/message-bus",
+            "version": "0.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webinertia/message-bus.git",
+                "reference": "3c7a9787b46b059c95eca7f25ee636f3b54dc1ca"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webinertia/message-bus/zipball/3c7a9787b46b059c95eca7f25ee636f3b54dc1ca",
+                "reference": "3c7a9787b46b059c95eca7f25ee636f3b54dc1ca",
+                "shasum": ""
+            },
+            "require": {
+                "php": "~8.4.1 || ~8.5.0",
+                "psr/container": "^2.0"
+            },
+            "require-dev": {
+                "laminas/laminas-servicemanager": "^4.0.0",
+                "php-standard-library/type": "^6.2",
+                "phpunit/phpunit": "^12.5.30",
+                "roave/backward-compatibility-check": "^8.21.0",
+                "roave/security-advisories": "dev-master"
+            },
+            "suggest": {
+                "laminas/laminas-servicemanager": "Laminas\\ServiceManager component"
+            },
+            "type": "library",
+            "extra": {
+                "laminas": {
+                    "config-provider": "Webware\\MessageBus\\ConfigProvider"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/functions/priority_queue_reducer_factory.php",
+                    "src/functions/collection_mapper_factory.php"
+                ],
+                "psr-4": {
+                    "Webware\\MessageBus\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "MessageBus for Mezzio",
+            "homepage": "https://github.com/webinertia/message-bus/discussions",
+            "keywords": [
+                "messagebus",
+                "mezzio",
+                "webware"
+            ],
+            "support": {
+                "forum": "https://github.com/webinertia/message-bus/discussions",
+                "issues": "https://github.com/webinertia/message-bus/issues",
+                "source": "https://github.com/webinertia/message-bus"
+            },
+            "time": "2026-08-03T01:59:25+00:00"
         },
         {
             "name": "webware/messagebus-event",
@@ -5585,6 +5647,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "php-db/phpdb-mysql": 20,
         "roave/security-advisories": 20,
         "webware/messagebus-event": 20,
         "webware/traccio": 20

@@ -1,0 +1,98 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Mezzio Bleeding Edge Skeleton App.
+ *
+ * Copyright (c) 2025-2026 Joey Smith <jsmith@webinertia.net>
+ * and contributors.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+chdir(__DIR__ . '/../');
+
+const DIST_FILE   = 'config/development.config.php.dist';
+const ACTIVE_FILE = 'config/development.config.php';
+
+function isEnabled(): bool
+{
+    return file_exists(ACTIVE_FILE);
+}
+
+function printUsage(): void
+{
+    echo <<<USAGE
+    Usage:
+      bin/development-mode --enable   Copy dist file to enable development mode
+      bin/development-mode --disable  Remove active file to disable development mode
+      bin/development-mode --status   Show current development mode status
+
+    USAGE;
+}
+
+$args = array_slice($argv, 1);
+
+if (empty($args)) {
+    printUsage();
+    exit(0);
+}
+
+$flag = $args[0];
+
+switch ($flag) {
+    case '--enable':
+        if (isEnabled()) {
+            echo 'Development mode is already enabled.' . PHP_EOL;
+            exit(0);
+        }
+
+        if (! file_exists(DIST_FILE)) {
+            printf("Dist file '%s' not found.%s", DIST_FILE, PHP_EOL);
+            exit(1);
+        }
+
+        if (! copy(DIST_FILE, ACTIVE_FILE)) {
+            printf("Failed to enable development mode: could not copy '%s' to '%s'.%s", DIST_FILE, ACTIVE_FILE, PHP_EOL);
+            exit(1);
+        }
+
+        $cacheFile = 'data/cache/config-cache.php';
+        if (file_exists($cacheFile)) {
+            unlink($cacheFile);
+            echo 'Config cache cleared.' . PHP_EOL;
+        }
+
+        echo 'Development mode ENABLED.' . PHP_EOL;
+        exit(0);
+
+    case '--disable':
+        if (! isEnabled()) {
+            echo 'Development mode is already disabled.' . PHP_EOL;
+            exit(0);
+        }
+
+        if (! unlink(ACTIVE_FILE)) {
+            printf("Failed to disable development mode: could not remove '%s'.%s", ACTIVE_FILE, PHP_EOL);
+            exit(1);
+        }
+
+        echo 'Development mode DISABLED.' . PHP_EOL;
+        exit(0);
+
+    case '--status':
+        if (isEnabled()) {
+            echo 'Development mode is ENABLED.' . PHP_EOL;
+        } else {
+            echo 'Development mode is DISABLED.' . PHP_EOL;
+        }
+        exit(0);
+
+    default:
+        printf("Unknown option: %s%s", $flag, PHP_EOL);
+        printUsage();
+        exit(1);
+}

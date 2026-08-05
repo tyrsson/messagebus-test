@@ -29,7 +29,7 @@ final class HomePageHandlerFactoryTest extends TestCase
     public function testFactoryWithTemplate(): void
     {
         $container = new InMemoryContainer();
-        $container->setService(TemplateRendererInterface::class, $this->createMock(TemplateRendererInterface::class));
+        $container->setService(TemplateRendererInterface::class, $this->createStub(TemplateRendererInterface::class));
 
         $factory  = new HomePageHandlerFactory();
         $homePage = $factory($container);

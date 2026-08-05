@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Laminas\Stratigility\Middleware\ErrorHandler;
 use Mezzio\Application;
 use Mezzio\Handler\NotFoundHandler;
+use Mezzio\Helper\BodyParams\BodyParamsMiddleware;
 use Mezzio\Helper\ServerUrlMiddleware;
 use Mezzio\Helper\UrlHelperMiddleware;
 use Mezzio\MiddlewareFactory;
@@ -26,6 +27,9 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
         : $app->pipe(ErrorHandler::class);
 
     $app->pipe(ServerUrlMiddleware::class);
+
+    // Parses request bodies (json, urlencoded, multipart) into getParsedBody().
+    $app->pipe(BodyParamsMiddleware::class);
 
     // Pipe more middleware here that you want to execute on every request:
     // - bootstrapping

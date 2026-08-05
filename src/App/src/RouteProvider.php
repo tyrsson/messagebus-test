@@ -27,17 +27,41 @@ final class RouteProvider implements RouteProviderInterface
         $routeCollector->get(
             '/',
             $middlewareFactory->prepare(
-                Handler\HomePageHandler::class
+                Handler\HomePageHandler::class,
             ),
-            'home'
+            'home',
         );
 
         $routeCollector->get(
             '/ping',
             $middlewareFactory->prepare(
-                Handler\PingHandler::class
+                Handler\PingHandler::class,
             ),
-            'api.ping'
+            'api.ping',
+        );
+
+        $routeCollector->get(
+            '/notes',
+            $middlewareFactory->prepare(
+                Handler\NoteQueryHandler::class,
+            ),
+            'notes.list',
+        );
+
+        $routeCollector->post(
+            '/notes',
+            $middlewareFactory->prepare(
+                Handler\NoteCommandHandler::class,
+            ),
+            'notes.create',
+        );
+
+        $routeCollector->patch(
+            '/notes/{id:\d+}',
+            $middlewareFactory->prepare(
+                Handler\NoteCommandHandler::class,
+            ),
+            'notes.update',
         );
     }
 }
