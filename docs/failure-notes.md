@@ -24,22 +24,14 @@ extend a `final` class — this example is a fatal PHP error (`Class ... cannot 
 and `EventAwareInterface` directly (via `EventAwareTrait`), reimplementing the constructor and the three
 getters (`getCommand()`, `getResult()`, `getStatus()`) itself instead of extending `CommandResult`.
 
-## 2. `webware/message-bus`: `functions\*` docs vs. actual namespace
-
-`api-reference/configuration.md` documents `functions\collection_mapper_factory()` and
-`functions\priority_queue_reducer_factory()`, implying a namespace of `Webware\MessageBus\functions`.
-The actual source (`vendor/webware/message-bus/src/functions/collection_mapper_factory.php` and
-`priority_queue_reducer_factory.php`) declares `namespace Webware\MessageBus\Container;` — the
-directory name does not match the real namespace.
-
-## 3. `webware/message-bus`: inconsistent `@api`/`@internal` tagging between Command and Query results
+## 2. `webware/message-bus`: inconsistent `@api`/`@internal` tagging between Command and Query results
 
 `Command\CommandResultInterface` is tagged `@api`, while `Query\QueryResultInterface` is tagged
 `@internal`, despite the docs describing them as exact mirrors of one another with no distinction
 called out. Similarly, `Command\CommandResult` carries no `@api`/`@internal` tag while `Query\QueryResult`
 is explicitly `@api`.
 
-## 4. `webware/message-bus`: dead/unused `Exception\CommandException`
+## 3. `webware/message-bus`: dead/unused `Exception\CommandException`
 
 The docs describe `Exception\CommandException` as "reserved for signaling that no handler was found for
 a given command class", but the actual code path for that case
@@ -47,7 +39,7 @@ a given command class", but the actual code path for that case
 `ServiceNotFoundException` instead. `CommandException` does not appear to be thrown anywhere in the
 current source.
 
-## 5. `webware/messagebus-event`: getting-started.md omits a required peer ConfigProvider
+## 4. `webware/messagebus-event`: getting-started.md omits a required peer ConfigProvider
 
 The getting-started wiring example only lists `Webware\MessageBus\ConfigProvider` and
 `Webware\MessageBus\Event\ConfigProvider`. It omits that `Phly\EventDispatcher\ConfigProvider` (from the
@@ -56,7 +48,7 @@ peer dependency `phly/phly-event-dispatcher`) must **also** be registered in the
 `AttachableListenerProvider`) that are only registered by phly's own `ConfigProvider`. Without it,
 container resolution fails at runtime. `config/config.php` in this project registers all three.
 
-## 6. `php-db/phpdb`: mezzio integration doc uses a stale top-level config key
+## 5. `php-db/phpdb`: mezzio integration doc uses a stale top-level config key
 
 `vendor/php-db/phpdb/docs/book/application-integration/usage-in-a-mezzio-application.md` documents
 configuring the adapter under a top-level `'db'` key. The actual factory
@@ -70,39 +62,7 @@ Fixed correctly in this project's [config/autoload/mysql.local.php](../config/au
 which is keyed by `AdapterInterface::class` per the actual source, with an inline note pointing back
 to this discrepancy.
 
-## 7. `webware/message-bus`: `QueryHandlerInterface` does not live under `Query\`
-
-Following the same pattern as `Command\CommandHandlerInterface`, one would expect
-`Webware\MessageBus\Query\QueryHandlerInterface` to exist. It does not — `QueryHandlerInterface` (like
-`CommandHandlerInterface`) is declared at the package root, `Webware\MessageBus\QueryHandlerInterface`
-(`vendor/webware/message-bus/src/QueryHandlerInterface.php`). Only the result/query value objects
-(`QueryResult`, `QueryResultInterface`, `QueryInterface`) actually live under the `Query\` sub-namespace.
-Importing the non-existent `Query\QueryHandlerInterface` fails silently at the `use` statement and only
-surfaces as a "class not found"/type error at runtime when the handler is resolved. Fixed in
-`App\QueryHandler\ListNotesHandler`.
-
-## 8. `php-db/phpdb-mysql`: `Statement::$profiler` typed property accessed before initialization
-
-`PhpDb\Mysql\Statement::$profiler` is declared as `protected ?ProfilerInterface $profiler;` (no default
-value). `setProfiler()` is only called by `PhpDb\Adapter\Adapter` when a profiler is explicitly passed in
-at construction (`vendor/php-db/phpdb/src/Adapter/Adapter.php`, constructor `if ($profiler) { $this->setProfiler($profiler); }`).
-When no profiler is configured (the common case — this project's `mysql.local.php` does not configure
-one), `Statement::$profiler` is never initialized, yet `Statement::execute()` unconditionally does
-`$this->profiler?->profilerStart($this);`. Reading an uninitialized typed property throws
-`Error: Typed property PhpDb\Mysql\Statement::$profiler must not be accessed before initialization`
-before the nullsafe operator gets a chance to short-circuit — nullsafe (`?->`) does not protect against
-an uninitialized-property read, only against a `null` value. This surfaces on every real query executed
-against MySQL via `TableGateway`, e.g. `IntegrationTest\NotesEndToEndTest`.
-
-**Fix required upstream**: declare the property with a default, e.g. `protected ?ProfilerInterface $profiler = null;`.
-No workaround is possible from consumer code since the property is `protected` and only touched inside
-the vendor class itself.
-
-**UPDATE**: fixed upstream as of `php-db/phpdb-mysql` `0.4.x-dev` — `Statement::$profiler` now declares
-`protected ?ProfilerInterface $profiler = null;`. Confirmed by bumping this project's dependency
-(`composer.json`: `"php-db/phpdb-mysql": "^0.3.0"` → `"0.4.x-dev"`) and re-reading the installed source.
-
-## 9. `php-db/phpdb-mysql`: `Statement` is missing `__clone()`, so `$parameterContainer` (and bound state) leaks across every query run through the same `Driver`
+## 6. `php-db/phpdb-mysql`: `Statement` is missing `__clone()`, so `$parameterContainer` (and bound state) leaks across every query run through the same `Driver`
 
 ### Symptom
 
@@ -212,7 +172,7 @@ use. **This is now fixed as of `0.4.x-dev`** — `PhpDb\Mysql\Pdo\Driver` now de
 `__construct()` that assigns `$connection`, `$statementPrototype`, and `$resultPrototype`. Confirmed via a
 full test suite run (25 tests, 0 errors) after the dependency bump.
 
-## 10. PHPUnit 12: mocks with no configured expectations now error, not just notice
+## 7. PHPUnit 12: mocks with no configured expectations now error, not just notice
 
 Since a recent PHPUnit 12.x release, calling `createMock()` and only configuring a return value via
 `->method()->willReturn()` (i.e. never calling `->expects()`) triggers:
