@@ -100,6 +100,26 @@ All endpoints are registered in [src/App/src/RouteProvider.php](src/App/src/Rout
 | `GET`   | `/notes`         | List all notes                  |
 | `POST`  | `/notes`         | Create a note                    |
 | `PATCH` | `/notes/{id}`    | Update a note's title            |
+| `DELETE`| `/notes/{id}`    | Delete a note                    |
+
+### Web UI
+
+The home page ([http://localhost:8080/](http://localhost:8080/)) renders a basic Pico-styled
+form for creating and updating notes, so you don't have to use curl to try things out:
+
+- An "Add a note" form `POST`s to `/notes`.
+- Each listed note has its own inline update form and a "Delete" button. Native HTML forms
+  can't submit `PATCH`/`DELETE`, so each submits a `POST` with a hidden `_method` field
+  (`PATCH` or `DELETE`); `App\Middleware\MethodOverrideMiddleware` rewrites the request
+  method before routing (the standard `_method` override convention). The "Delete" button
+  uses the HTML `form` attribute to submit a separate hidden delete form for that note,
+  since a single `<form>` can only carry one action/method.
+- After a successful submission, `App\Middleware\NoteFormRedirectMiddleware` converts the
+  handler's JSON response into a redirect back to `/` (Post/Redirect/Get), so the browser
+  never shows raw JSON. On validation errors it redirects to `/?error=...` instead, which the
+  home page displays as a banner. This only applies to `application/x-www-form-urlencoded`
+  submissions — requests with an explicit `application/json` Content-Type (curl, tests, API
+  clients) get the JSON responses shown below, unchanged.
 
 ### Examples
 
@@ -127,10 +147,18 @@ curl -X PATCH http://localhost:8080/notes/1 \
 # -> 200 {"id":"1","title":"updated title"}
 ```
 
+Delete a note:
+
+```bash
+curl -X DELETE http://localhost:8080/notes/1 \
+  -H "Content-Type: application/json"
+# -> 200 {"id":"1"}
+```
+
 Error responses:
 
 - Missing/empty `title` on create or update returns `422 {"error":"title is required"}`.
-- Updating a non-existent note id returns `404 {"error":"note not found"}`.
+- Updating or deleting a non-existent note id returns `404 {"error":"note not found"}`.
 
 ## Testing
 
@@ -160,16 +188,19 @@ composer test-coverage     # unit tests with code coverage (clover.xml)
 
 The application lives entirely in the `App` module ([src/App](src/App)):
 
-- `Command` / `CommandHandler` — `CreateNoteCommand` / `UpdateNoteCommand` and their handlers,
-  dispatched through `Webware\MessageBus\MessageBusInterface`.
+- `Command` / `CommandHandler` — `CreateNoteCommand` / `UpdateNoteCommand` / `DeleteNoteCommand`
+  and their handlers, dispatched through `Webware\MessageBus\MessageBusInterface`.
 - `Query` / `QueryHandler` — `ListNotesQuery` and its handler.
 - `Handler` — PSR-15 request handlers (`HomePageHandler`, `PingHandler`, `NoteCommandHandler`,
   `NoteQueryHandler`) that translate HTTP requests into bus commands/queries.
+- `Middleware` — `MethodOverrideMiddleware` (rewrites POST to PATCH/DELETE via a `_method`
+  form field) and `NoteFormRedirectMiddleware` (Post/Redirect/Get wrapper for HTML form
+  submissions to the `/notes` routes), see [Web UI](#web-ui) above.
 - `Container` — factories wiring the above into the Laminas ServiceManager container.
 - `Event` / `Listener` — `NoteCreatedEvent`, dispatched via `webware/messagebus-event` and
   handled by `NoteCreatedListener`, which logs the event via Tracy.
-- `Ddl` — `NotesTable::createIfNotExists()`, used by `bin/init-notes-db.php` and the
-  integration test suite to provision the `notes` table.
+- `Ddl` — `NotesTable::createIfNotExists()`, used by `bin/init-db` and the integration test
+  suite to provision the `notes` table.
 
 ## Documentation
 

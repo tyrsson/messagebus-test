@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Middleware\MethodOverrideMiddleware;
 use Laminas\Stratigility\Middleware\ErrorHandler;
 use Mezzio\Application;
 use Mezzio\Handler\NotFoundHandler;
@@ -30,6 +31,10 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
 
     // Parses request bodies (json, urlencoded, multipart) into getParsedBody().
     $app->pipe(BodyParamsMiddleware::class);
+
+    // HTML forms can't submit PATCH/PUT/DELETE; rewrites the method from a
+    // "_method" form field before routing matches against it.
+    $app->pipe(MethodOverrideMiddleware::class);
 
     // Pipe more middleware here that you want to execute on every request:
     // - bootstrapping

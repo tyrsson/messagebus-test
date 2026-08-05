@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IntegrationTest;
 
 use App\Command\CreateNoteCommand;
+use App\Command\DeleteNoteCommand;
 use App\Command\UpdateNoteCommand;
 use App\Query\ListNotesQuery;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -58,6 +59,34 @@ final class NotesEndToEndTest extends TestCase
 
         $updatedTitles = array_column($notes, 'title');
         self::assertContains('integration test note (updated)', $updatedTitles);
+    }
+
+    public function testDeleteOfMissingNoteFails(): void
+    {
+        $bus = self::$container->get(MessageBusInterface::class);
+
+        $result = $bus->handle(new DeleteNoteCommand('999999999'));
+
+        self::assertSame(MessageStatus::Failure, $result->getStatus());
+    }
+
+    public function testDeleteRemovesNote(): void
+    {
+        $bus = self::$container->get(MessageBusInterface::class);
+
+        $createResult = $bus->handle(new CreateNoteCommand('note to delete'));
+        $created      = $createResult->getResult();
+        self::assertIsArray($created);
+        $id = $created['id'];
+
+        $deleteResult = $bus->handle(new DeleteNoteCommand((string) $id));
+        self::assertSame(MessageStatus::Success, $deleteResult->getStatus());
+
+        $listResult = $bus->handle(new ListNotesQuery());
+        $notes      = $listResult->getResult();
+        self::assertIsArray($notes);
+
+        self::assertNotContains('note to delete', array_column($notes, 'title'));
     }
 
     public function testUpdateOfMissingNoteFails(): void
