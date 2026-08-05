@@ -26,18 +26,29 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if ($request->getMethod() === 'DELETE') {
-            $id = Type\non_empty_string()->assert($request->getAttribute('id'));
+        return match ($request->getMethod()) {
+            'DELETE' => $this->handleDelete($request),
+            'PATCH'  => $this->handlePatch($request),
+            default  => $this->handlePost($request),
+        };
+    }
 
-            $result = $this->bus->handle(new DeleteNoteCommand($id));
+    private function handleDelete(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = Type\non_empty_string()->assert($request->getAttribute('id'));
 
-            if ($result->getStatus() === MessageStatus::Failure) {
-                return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
-            }
+        $result = $this->bus->handle(new DeleteNoteCommand($id));
 
-            return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+        if ($result->getStatus() === MessageStatus::Failure) {
+            return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
         }
 
+        return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+    }
+
+    private function handlePatch(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = Type\non_empty_string()->assert($request->getAttribute('id'));
         try {
             $title = Type\shape(['title' => Type\non_empty_string()], allowUnknownFields: true)->assert(
                 $request->getParsedBody(),
@@ -46,16 +57,23 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
             return new JsonResponse(['error' => 'title is required'], 422, [], self::JSON_FLAGS);
         }
 
-        if ($request->getMethod() === 'PATCH') {
-            $id = Type\non_empty_string()->assert($request->getAttribute('id'));
+        $result = $this->bus->handle(new UpdateNoteCommand($id, $title));
 
-            $result = $this->bus->handle(new UpdateNoteCommand($id, $title));
+        if ($result->getStatus() === MessageStatus::Failure) {
+            return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
+        }
 
-            if ($result->getStatus() === MessageStatus::Failure) {
-                return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
-            }
+        return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+    }
 
-            return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+    private function handlePost(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            $title = Type\shape(['title' => Type\non_empty_string()], allowUnknownFields: true)->assert(
+                $request->getParsedBody(),
+            )['title'];
+        } catch (AssertException) {
+            return new JsonResponse(['error' => 'title is required'], 422, [], self::JSON_FLAGS);
         }
 
         $result = $this->bus->handle(new CreateNoteCommand($title));
