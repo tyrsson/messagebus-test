@@ -120,6 +120,14 @@ form for creating and updating notes, so you don't have to use curl to try thing
   home page displays as a banner. This only applies to `application/x-www-form-urlencoded`
   submissions — requests with an explicit `application/json` Content-Type (curl, tests, API
   clients) get the JSON responses shown below, unchanged.
+- A note only has one field: `title`. The text box in each note's row is that title, not a
+  separate "content" field — it's easy to misread it as body text when skimming the list.
+  Clicking "Update" without changing that text is a no-op update (no columns actually
+  change), which relies on the database reporting matched rows rather than changed rows
+  for `PDOStatement::rowCount()` — see the `driver_options` comment in
+  [config/autoload/mysql.local.php.dist](config/autoload/mysql.local.php.dist). Without
+  that setting, a no-op update is misreported as `404 {"error":"note not found"}` even
+  though the note exists and matched.
 
 ### Examples
 
