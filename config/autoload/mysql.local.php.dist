@@ -25,7 +25,11 @@ return [
             'database'       => 'messagebus_event_test',
             'port'           => 3306,
             'charset'        => 'utf8',
-            'driver_options' => [],
+            // Without this, PDOStatement::rowCount() after an UPDATE reports rows *changed*,
+            // not rows *matched* - a no-op update (submitted title equals the current title)
+            // then reports 0 affected rows, which UpdateNoteHandler reads as "not found".
+            // This makes it report matched rows instead, per PDO_MYSQL docs.
+            'driver_options' => [PDO::MYSQL_ATTR_FOUND_ROWS => true],
         ],
         'options'    => [
             'buffer_results' => false,
