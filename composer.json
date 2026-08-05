@@ -1,0 +1,75 @@
+{
+    "name": "tyrsson/messagebus-test",
+    "description": "End to end testing of the messagebus & messagebus-event package",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "mezzio",
+        "custom skeleton"
+    ],
+    "authors": [
+        {
+            "name": "Joey Smith",
+            "email": "jsmith@webinertia.net",
+            "homepage": "https://github.com/tyrsson/mezzio-bleeding-edge/discussions",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~8.4.0 || ~8.5.0",
+        "laminas/laminas-component-installer": "^3.7",
+        "laminas/laminas-config-aggregator": "^1.19",
+        "laminas/laminas-diactoros": "^3.8",
+        "laminas/laminas-servicemanager": "^4.5",
+        "laminas/laminas-stdlib": "^3.21",
+        "laminas/laminas-view": "^3.0",
+        "mezzio/mezzio": "^3.26",
+        "mezzio/mezzio-fastroute": "^3.14",
+        "mezzio/mezzio-helpers": "^5.20",
+        "mezzio/mezzio-laminasviewrenderer": "^3.0",
+        "php-db/phpdb-mysql":"^0.3.0",
+        "webware/messagebus-event": "^0.1.x-dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5",
+        "roave/security-advisories": "dev-master",
+        "webware/traccio": "0.1.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/App/src/",
+            "Mysql\\": "src/Mysql/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AppTest\\": "test/AppTest/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.4.99"
+        },
+        "allow-plugins": {
+            "laminas/laminas-component-installer": true
+        }
+    },
+    "scripts": {
+        "test-all": [
+            "@test",
+            "@test-integration"
+        ],
+        "clear-config-cache": "php bin/clear-config-cache.php",
+        "cs-check": "vendor/bin/php-cs-fixer check",
+        "cs-fix": "vendor/bin/php-cs-fixer fix",
+        "test": "phpunit --colors=always",
+        "test-integration": "phpunit --colors=always --testsuite integration",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -S 0.0.0.0:8080 -t public/"
+        ]
+    }
+}
