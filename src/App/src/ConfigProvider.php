@@ -53,12 +53,15 @@ class ConfigProvider
                 TableGateway::class                     => Container\NotesTableGatewayFactory::class,
                 CommandHandler\CreateNoteHandler::class => Container\CreateNoteHandlerFactory::class,
                 CommandHandler\UpdateNoteHandler::class => Container\UpdateNoteHandlerFactory::class,
+                CommandHandler\DeleteNoteHandler::class => Container\DeleteNoteHandlerFactory::class,
                 QueryHandler\ListNotesHandler::class    => Container\ListNotesHandlerFactory::class,
             ],
             'invokables' => [
-                Handler\PingHandler::class          => Handler\PingHandler::class,
-                BodyParamsMiddleware::class         => BodyParamsMiddleware::class,
-                Listener\NoteCreatedListener::class => Listener\NoteCreatedListener::class,
+                Handler\PingHandler::class                   => Handler\PingHandler::class,
+                BodyParamsMiddleware::class                  => BodyParamsMiddleware::class,
+                Listener\NoteCreatedListener::class          => Listener\NoteCreatedListener::class,
+                Middleware\MethodOverrideMiddleware::class   => Middleware\MethodOverrideMiddleware::class,
+                Middleware\NoteFormRedirectMiddleware::class => Middleware\NoteFormRedirectMiddleware::class,
             ],
         ];
     }
@@ -91,6 +94,7 @@ class ConfigProvider
             BusConfigProvider::COMMAND_MAP_KEY => [
                 Command\CreateNoteCommand::class => CommandHandler\CreateNoteHandler::class,
                 Command\UpdateNoteCommand::class => CommandHandler\UpdateNoteHandler::class,
+                Command\DeleteNoteCommand::class => CommandHandler\DeleteNoteHandler::class,
             ],
             BusConfigProvider::QUERY_MAP_KEY   => [
                 Query\ListNotesQuery::class => QueryHandler\ListNotesHandler::class,

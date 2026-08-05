@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Handler;
 
 use App\Command\CreateNoteCommand;
+use App\Command\DeleteNoteCommand;
 use App\Command\UpdateNoteCommand;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psl\Type;
@@ -25,6 +26,18 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        if ($request->getMethod() === 'DELETE') {
+            $id = Type\non_empty_string()->assert($request->getAttribute('id'));
+
+            $result = $this->bus->handle(new DeleteNoteCommand($id));
+
+            if ($result->getStatus() === MessageStatus::Failure) {
+                return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
+            }
+
+            return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+        }
+
         try {
             $title = Type\shape(['title' => Type\non_empty_string()], allowUnknownFields: true)->assert(
                 $request->getParsedBody(),

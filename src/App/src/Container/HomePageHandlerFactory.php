@@ -18,6 +18,7 @@ use App\Handler\HomePageHandler;
 use Mezzio\Template\TemplateRendererInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Webware\MessageBus\MessageBusInterface;
 
 use function assert;
 
@@ -30,6 +31,11 @@ final class HomePageHandlerFactory
             : null;
         assert($template instanceof TemplateRendererInterface || null === $template);
 
-        return new HomePageHandler($template);
+        $bus = $container->has(MessageBusInterface::class)
+            ? $container->get(MessageBusInterface::class)
+            : null;
+        assert($bus instanceof MessageBusInterface || null === $bus);
+
+        return new HomePageHandler($template, $bus);
     }
 }
