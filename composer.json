@@ -28,7 +28,6 @@
         "mezzio/mezzio-laminasviewrenderer": "^3.0",
         "php-db/phpdb-mysql": "0.4.x-dev",
         "php-standard-library/type": "^6.2",
-        "webware/message-bus": "^0.1.1",
         "webware/messagebus-event": "^0.1.x-dev"
     },
     "require-dev": {
