@@ -11,7 +11,7 @@ $this->headLink(
     [
         'rel'  => 'shortcut icon',
         'href' => 'https://getlaminas.org/images/favicon/favicon.ico',
-    ]
+    ],
 );
 
 // styles
@@ -26,8 +26,8 @@ $this->headScript()
     ->appendFile(
         'https://unpkg.com/htmx.org@2.0.1/dist/htmx.js',
         [
-            'type' => 'text/javascript',
-            'integrity' => 'sha384-gpIh5aLQ0qmX8kZdyhsd6jA24uKLkqIr1WAGtantR4KsS97l/NRBvh8/8OYGThAf',
+            'type'        => 'text/javascript',
+            'integrity'   => 'sha384-gpIh5aLQ0qmX8kZdyhsd6jA24uKLkqIr1WAGtantR4KsS97l/NRBvh8/8OYGThAf',
             'crossorigin' => 'anonymous',
         ],
     );
@@ -50,7 +50,7 @@ $this->headScript()
                 <ul>
                     <li>
                         <a href="<?= $this->url('home') ?>">
-                            <img src="https://docs.laminas.dev/img/laminas-mezzio-rgb.svg" alt="Laminas Mezzio" width="300" />
+                            <img src="/assets/image/webinertia-logo.png" alt="Webinertia" width="150" />
                         </a>
                     </li>
                 </ul>
@@ -80,7 +80,9 @@ $this->headScript()
         <footer id="app-footer" class="container">
             <hr />
             <p>
-                &copy; <?= date('Y') ?> <a href="https://getlaminas.org/">Laminas Project</a> a Series of LF Projects, LLC.
+                &copy; <?= date(
+                    'Y',
+                ) ?> <a href="https://webinertia.dev">Webinertia</a>
             </p>
         </footer>
         <?= $this->inlineScript() ?>
