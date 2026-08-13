@@ -7,6 +7,7 @@ namespace App\Handler;
 use App\Command\CreateNoteCommand;
 use App\Command\DeleteNoteCommand;
 use App\Command\UpdateNoteCommand;
+use Fig\Http\Message\RequestMethodInterface as HttpMethod;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psl\Type;
 use Psl\Type\Exception\AssertException;
@@ -27,9 +28,9 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         return match ($request->getMethod()) {
-            'DELETE' => $this->handleDelete($request),
-            'PATCH'  => $this->handlePatch($request),
-            default  => $this->handlePost($request),
+            HttpMethod::METHOD_DELETE => $this->handleDelete($request),
+            HttpMethod::METHOD_PATCH  => $this->handlePatch($request),
+            default                   => $this->handlePost($request),
         };
     }
 
