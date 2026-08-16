@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "38a7bdf132feecc3805289db19b713b5",
+    "content-hash": "0b50a7e71142c6f80fffb3d94af795a4",
     "packages": [
         {
             "name": "brick/varexporter",
@@ -1474,12 +1474,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-db/phpdb.git",
-                "reference": "e037464a435005e04a3fde3c113324c26406ce7e"
+                "reference": "5c561a620d20088fef9111f090da295ab82d7cd0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-db/phpdb/zipball/e037464a435005e04a3fde3c113324c26406ce7e",
-                "reference": "e037464a435005e04a3fde3c113324c26406ce7e",
+                "url": "https://api.github.com/repos/php-db/phpdb/zipball/5c561a620d20088fef9111f090da295ab82d7cd0",
+                "reference": "5c561a620d20088fef9111f090da295ab82d7cd0",
                 "shasum": ""
             },
             "require": {
@@ -1535,32 +1535,31 @@
                 "issues": "https://github.com/php-db/phpdb/issues",
                 "source": "https://github.com/php-db/phpdb"
             },
-            "time": "2026-07-08T05:31:35+00:00"
+            "time": "2026-08-12T22:24:28+00:00"
         },
         {
             "name": "php-db/phpdb-mysql",
-            "version": "0.4.x-dev",
+            "version": "0.5.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-db/phpdb-mysql.git",
-                "reference": "293ca1e03fc8b7fb7147d4d65715fa9e8f092f88"
+                "reference": "49e08f401512883811c458936cb40f458fe99678"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-db/phpdb-mysql/zipball/293ca1e03fc8b7fb7147d4d65715fa9e8f092f88",
-                "reference": "293ca1e03fc8b7fb7147d4d65715fa9e8f092f88",
+                "url": "https://api.github.com/repos/php-db/phpdb-mysql/zipball/49e08f401512883811c458936cb40f458fe99678",
+                "reference": "49e08f401512883811c458936cb40f458fe99678",
                 "shasum": ""
             },
             "require": {
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+                "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
                 "php-db/phpdb": "^0.6.0"
             },
             "require-dev": {
                 "ext-mysqli": "*",
                 "ext-pdo_mysql": "*",
-                "laminas/laminas-coding-standard": "^3.0.1",
-                "phpstan/phpstan": "^2.1",
-                "phpstan/phpstan-phpunit": "^2.0",
+                "infection/infection": "^0.34.1",
+                "php-db/phpdb-qa-tools": "0.1.x-dev",
                 "phpunit/phpunit": "^11.5.42"
             },
             "suggest": {
@@ -1598,7 +1597,7 @@
                 "issues": "https://github.com/php-db/phpdb-mysql/issues",
                 "source": "https://github.com/php-db/phpdb-mysql"
             },
-            "time": "2026-06-23T02:33:37+00:00"
+            "time": "2026-08-10T01:57:41+00:00"
         },
         {
             "name": "php-standard-library/collection",
@@ -2584,16 +2583,16 @@
         },
         {
             "name": "webware/message-bus",
-            "version": "1.0.0",
+            "version": "2.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webinertia/message-bus.git",
-                "reference": "2fbb097700a4c4652a93fa7901520f3407891ce1"
+                "reference": "6e88c4e4612f833fb41aab21887d5ed54782a54a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webinertia/message-bus/zipball/2fbb097700a4c4652a93fa7901520f3407891ce1",
-                "reference": "2fbb097700a4c4652a93fa7901520f3407891ce1",
+                "url": "https://api.github.com/repos/webinertia/message-bus/zipball/6e88c4e4612f833fb41aab21887d5ed54782a54a",
+                "reference": "6e88c4e4612f833fb41aab21887d5ed54782a54a",
                 "shasum": ""
             },
             "require": {
@@ -2603,7 +2602,6 @@
             "require-dev": {
                 "infection/infection": "^0.34.1",
                 "laminas/laminas-servicemanager": "^4.0.0",
-                "php-coveralls/php-coveralls": "^2.7",
                 "php-standard-library/type": "^6.2",
                 "phpbench/phpbench": "^1.7",
                 "phpunit/phpunit": "^12.5.30",
@@ -2613,6 +2611,7 @@
             "suggest": {
                 "laminas/laminas-servicemanager": "Laminas\\ServiceManager component"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laminas": {
@@ -2644,20 +2643,20 @@
                 "issues": "https://github.com/webinertia/message-bus/issues",
                 "source": "https://github.com/webinertia/message-bus"
             },
-            "time": "2026-08-06T10:17:11+00:00"
+            "time": "2026-08-15T05:42:17+00:00"
         },
         {
             "name": "webware/messagebus-event",
-            "version": "0.1.x-dev",
+            "version": "2.0.0-beta.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webinertia/messagebus-event.git",
-                "reference": "3348ae708a030f8b6066a482231fa9e221141467"
+                "reference": "69a1870da7d8a9162c0e18969dd3698d1dfc37f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webinertia/messagebus-event/zipball/3348ae708a030f8b6066a482231fa9e221141467",
-                "reference": "3348ae708a030f8b6066a482231fa9e221141467",
+                "url": "https://api.github.com/repos/webinertia/messagebus-event/zipball/69a1870da7d8a9162c0e18969dd3698d1dfc37f6",
+                "reference": "69a1870da7d8a9162c0e18969dd3698d1dfc37f6",
                 "shasum": ""
             },
             "require": {
@@ -2665,7 +2664,7 @@
                 "phly/phly-event-dispatcher": "^1.5.0",
                 "php": "~8.4.1 || ~8.5.0",
                 "php-standard-library/type": "^6.2",
-                "webware/message-bus": "^1.0.0",
+                "webware/message-bus": "2.0.x-dev",
                 "webware/webware-psl-type": "^0.1.x-dev"
             },
             "require-dev": {
@@ -2674,7 +2673,6 @@
                 "phpunit/phpunit": "^12.5.30",
                 "roave/security-advisories": "dev-master"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laminas": {
@@ -2706,9 +2704,9 @@
             ],
             "support": {
                 "issues": "https://github.com/webinertia/messagebus-event/issues",
-                "source": "https://github.com/webinertia/messagebus-event/tree/0.1.x"
+                "source": "https://github.com/webinertia/messagebus-event/tree/2.0.0-beta.1"
             },
-            "time": "2026-08-07T01:04:48+00:00"
+            "time": "2026-08-16T04:10:01+00:00"
         },
         {
             "name": "webware/webware-psl-type",
@@ -5652,7 +5650,6 @@
     "stability-flags": {
         "php-db/phpdb-mysql": 20,
         "roave/security-advisories": 20,
-        "webware/messagebus-event": 20,
         "webware/traccio": 20
     },
     "prefer-stable": true,

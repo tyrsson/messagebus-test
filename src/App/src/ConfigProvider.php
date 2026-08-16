@@ -17,11 +17,20 @@ namespace App;
 use Mezzio\Helper\BodyParams\BodyParamsMiddleware;
 use PhpDb\TableGateway\TableGateway;
 use Webware\MessageBus\ConfigProvider as BusConfigProvider;
+use Webware\MessageBus\Event\Command\CommandPostHandleEvent;
+use Webware\MessageBus\Event\Command\CommandPreHandleEvent;
 use Webware\MessageBus\Event\ConfigProvider as EventConfigProvider;
+use Webware\MessageBus\Event\Middleware\QueryPostHandleMiddleware;
+use Webware\MessageBus\Event\Middleware\QueryPreHandleMiddleware;
+use Webware\MessageBus\Event\Query\QueryPostHandleEvent;
+use Webware\MessageBus\Event\Query\QueryPreHandleEvent;
 use Webware\MessageBus\MessageBusInterface;
+use Webware\MessageBus\Strategy\ClassnameStrategy;
+use Webware\MessageBus\StrategyInterface;
 
 /**
  * @phpstan-type dependencyArray array{
+ *                      aliases?: array<class-string, class-string>,
  *                      delegators?: array<class-string, list<class-string>>,
  *                      factories?: array<class-string, class-string>,
  *                      invokables?: array<class-string, class-string>
@@ -45,23 +54,26 @@ class ConfigProvider
     public function getDependencies(): array
     {
         return [
+            'aliases'    => [
+                StrategyInterface::class => ClassnameStrategy::class,
+            ],
             'factories'  => [
-                Handler\HomePageHandler::class          => Container\HomePageHandlerFactory::class,
-                Handler\NoteCommandHandler::class       => Container\NoteCommandHandlerFactory::class,
-                Handler\NoteQueryHandler::class         => Container\NoteQueryHandlerFactory::class,
-                RouteProvider::class                    => Container\RouteProviderFactory::class,
-                TableGateway::class                     => Container\NotesTableGatewayFactory::class,
-                CommandHandler\CreateNoteHandler::class => Container\CreateNoteHandlerFactory::class,
-                CommandHandler\UpdateNoteHandler::class => Container\UpdateNoteHandlerFactory::class,
-                CommandHandler\DeleteNoteHandler::class => Container\DeleteNoteHandlerFactory::class,
-                QueryHandler\ListNotesHandler::class    => Container\ListNotesHandlerFactory::class,
+                Handler\HomePageHandler::class                => Container\HomePageHandlerFactory::class,
+                Handler\NoteCommandHandler::class             => Container\NoteCommandHandlerFactory::class,
+                Handler\NoteListHandler::class                => Container\NoteListHandlerFactory::class,
+                Middleware\DetectAjaxRequestMiddleware::class => Middleware\DetectAjaxRequestMiddlewareFactory::class,
+                RouteProvider::class                          => Container\RouteProviderFactory::class,
+                TableGateway::class                           => Container\NotesTableGatewayFactory::class,
+                CommandHandler\CreateNoteHandler::class       => Container\CreateNoteHandlerFactory::class,
+                CommandHandler\UpdateNoteHandler::class       => Container\UpdateNoteHandlerFactory::class,
+                CommandHandler\DeleteNoteHandler::class       => Container\DeleteNoteHandlerFactory::class,
+                QueryHandler\ListNotesHandler::class          => Container\ListNotesHandlerFactory::class,
             ],
             'invokables' => [
-                Handler\PingHandler::class                   => Handler\PingHandler::class,
-                BodyParamsMiddleware::class                  => BodyParamsMiddleware::class,
-                Listener\NoteCreatedListener::class          => Listener\NoteCreatedListener::class,
-                Middleware\MethodOverrideMiddleware::class   => Middleware\MethodOverrideMiddleware::class,
-                Middleware\NoteFormRedirectMiddleware::class => Middleware\NoteFormRedirectMiddleware::class,
+                Handler\PingHandler::class               => Handler\PingHandler::class,
+                BodyParamsMiddleware::class              => BodyParamsMiddleware::class,
+                Listener\NoteCreatedListener::class      => Listener\NoteCreatedListener::class,
+                Listener\MessageLifecycleListener::class => Listener\MessageLifecycleListener::class,
             ],
         ];
     }
@@ -77,6 +89,18 @@ class ConfigProvider
             Event\NoteCreatedEvent::class => [
                 Listener\NoteCreatedListener::class,
             ],
+            CommandPreHandleEvent::class  => [
+                Listener\MessageLifecycleListener::class,
+            ],
+            CommandPostHandleEvent::class => [
+                Listener\MessageLifecycleListener::class,
+            ],
+            QueryPreHandleEvent::class    => [
+                Listener\MessageLifecycleListener::class,
+            ],
+            QueryPostHandleEvent::class   => [
+                Listener\MessageLifecycleListener::class,
+            ],
         ];
     }
 
@@ -85,19 +109,24 @@ class ConfigProvider
      *
      * @phpstan-return array{
      *     command_map: array<class-string, class-string>,
-     *     query_map: array<class-string, class-string>
+     *     query_map: array<class-string, class-string>,
+     *     middleware_pipeline: list<array{middleware: class-string, priority?: int}>
      * }
      */
     public function getMessageBusConfig(): array
     {
         return [
-            BusConfigProvider::COMMAND_MAP_KEY => [
+            BusConfigProvider::COMMAND_MAP_KEY         => [
                 Command\CreateNoteCommand::class => CommandHandler\CreateNoteHandler::class,
                 Command\UpdateNoteCommand::class => CommandHandler\UpdateNoteHandler::class,
                 Command\DeleteNoteCommand::class => CommandHandler\DeleteNoteHandler::class,
             ],
-            BusConfigProvider::QUERY_MAP_KEY   => [
+            BusConfigProvider::QUERY_MAP_KEY           => [
                 Query\ListNotesQuery::class => QueryHandler\ListNotesHandler::class,
+            ],
+            BusConfigProvider::MIDDLEWARE_PIPELINE_KEY => [
+                ['middleware' => QueryPreHandleMiddleware::class, 'priority' => 100],
+                ['middleware' => QueryPostHandleMiddleware::class, 'priority' => -100],
             ],
         ];
     }
@@ -125,10 +154,12 @@ class ConfigProvider
     {
         return [
             'map'            => [
-                'layout::default' => __DIR__ . '/../templates/layout/default.phtml',
-                'app::home-page'  => __DIR__ . '/../templates/app/home-page.phtml',
-                'error::404'      => __DIR__ . '/../templates/error/404.phtml',
-                'error::error'    => __DIR__ . '/../templates/error/error.phtml',
+                'layout::default'   => __DIR__ . '/../templates/layout/default.phtml',
+                'app::home-page'    => __DIR__ . '/../templates/app/home-page.phtml',
+                'app::notes-list'   => __DIR__ . '/../templates/app/notes-list.phtml',
+                'app::notes-errors' => __DIR__ . '/../templates/app/notes-errors.phtml',
+                'error::404'        => __DIR__ . '/../templates/error/404.phtml',
+                'error::error'      => __DIR__ . '/../templates/error/error.phtml',
             ],
             'paths'          => [
                 'app'   => [__DIR__ . '/../templates/app'],

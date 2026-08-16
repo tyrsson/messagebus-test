@@ -43,35 +43,32 @@ final class RouteProvider implements RouteProviderInterface
         $routeCollector->get(
             '/notes',
             $middlewareFactory->prepare(
-                Handler\NoteQueryHandler::class,
+                Handler\NoteListHandler::class,
             ),
             'notes.list',
         );
 
         $routeCollector->post(
             '/notes',
-            $middlewareFactory->prepare([
-                Middleware\NoteFormRedirectMiddleware::class,
+            $middlewareFactory->prepare(
                 Handler\NoteCommandHandler::class,
-            ]),
+            ),
             'notes.create',
         );
 
         $routeCollector->patch(
             '/notes/{id:\d+}',
-            $middlewareFactory->prepare([
-                Middleware\NoteFormRedirectMiddleware::class,
+            $middlewareFactory->prepare(
                 Handler\NoteCommandHandler::class,
-            ]),
+            ),
             'notes.update',
         );
 
         $routeCollector->delete(
             '/notes/{id:\d+}',
-            $middlewareFactory->prepare([
-                Middleware\NoteFormRedirectMiddleware::class,
+            $middlewareFactory->prepare(
                 Handler\NoteCommandHandler::class,
-            ]),
+            ),
             'notes.delete',
         );
     }

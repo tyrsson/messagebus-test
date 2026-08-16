@@ -6,10 +6,11 @@ A Mezzio demo application used to exercise, end-to-end, the
 [`php-db/phpdb`](https://github.com/php-db/phpdb) (+ `php-db/phpdb-mysql`) packages together
 in a real HTTP application backed by MySQL.
 
-The app is a small **Notes** CRUD API: commands/queries are dispatched through the message
-bus, command handlers/query handlers talk to MySQL via `phpdb`'s `TableGateway`, and a
-`NoteCreatedEvent` is fired (via `messagebus-event`) and logged by a listener whenever a note
-is created.
+The app is a small **Notes** CRUD demo: commands/queries are dispatched through the message
+bus, command handlers/query handlers talk to MySQL via `phpdb`'s `TableGateway`, the web UI
+is HTMX-powered (real `POST`/`PATCH`/`DELETE` requests, fragment responses), and the
+messagebus-event pipeline pre/post-handle events plus a `NoteCreatedEvent` are logged to
+Tracy's `data/log/info.log` by listeners.
 
 ## Requirements
 
@@ -97,76 +98,82 @@ All endpoints are registered in [src/App/src/RouteProvider.php](src/App/src/Rout
 |---------|------------------|----------------------------------|
 | `GET`   | `/`              | Home page                       |
 | `GET`   | `/ping`          | Health check, returns `{"ack": <unix timestamp>}` |
-| `GET`   | `/notes`         | List all notes                  |
-| `POST`  | `/notes`         | Create a note                    |
-| `PATCH` | `/notes/{id}`    | Update a note's title            |
-| `DELETE`| `/notes/{id}`    | Delete a note                    |
+| `GET`   | `/notes`         | Notes list HTML fragment (HTMX)      |
+| `POST`  | `/notes`         | Create a note, returns list fragment |
+| `PATCH` | `/notes/{id}`    | Update a note, returns list fragment |
+| `DELETE`| `/notes/{id}`    | Delete a note, returns list fragment |
 
 ### Web UI
 
-The home page ([http://localhost:8080/](http://localhost:8080/)) renders a basic Pico-styled
-form for creating and updating notes, so you don't have to use curl to try things out:
+The home page ([http://localhost:8080/](http://localhost:8080/)) renders a Pico-styled form for
+adding notes plus the notes list. The page is [HTMX](https://htmx.org)-powered, so every
+interaction is a partial page update — no full reloads, no `_method` fields, and no custom
+middleware:
 
-- An "Add a note" form `POST`s to `/notes`.
-- Each listed note has its own inline update form and a "Delete" button. Native HTML forms
-  can't submit `PATCH`/`DELETE`, so each submits a `POST` with a hidden `_method` field
-  (`PATCH` or `DELETE`); `App\Middleware\MethodOverrideMiddleware` rewrites the request
-  method before routing (the standard `_method` override convention). The "Delete" button
-  uses the HTML `form` attribute to submit a separate hidden delete form for that note,
-  since a single `<form>` can only carry one action/method.
-- After a successful submission, `App\Middleware\NoteFormRedirectMiddleware` converts the
-  handler's JSON response into a redirect back to `/` (Post/Redirect/Get), so the browser
-  never shows raw JSON. On validation errors it redirects to `/?error=...` instead, which the
-  home page displays as a banner. This only applies to `application/x-www-form-urlencoded`
-  submissions — requests with an explicit `application/json` Content-Type (curl, tests, API
-  clients) get the JSON responses shown below, unchanged.
+- The "Add a note" form issues `hx-post` to `/notes`. On success the handler returns the
+  updated `#notes-list` fragment, which HTMX swaps in (`hx-swap="outerHTML"`); the form
+  resets itself.
+- The notes list is loaded on page load via `hx-get` to `/notes` (`hx-trigger="load"`).
+- Each note row is an update form issuing `hx-patch` to `/notes/{id}`; its "Delete" button
+  issues `hx-delete` to `/notes/{id}`. Both target `#notes-list` with an `outerHTML` swap.
+- `App\Middleware\DetectAjaxRequestMiddleware` detects HTMX requests via the `HX-Request`
+  header and disables the layout for that request, so the handlers' fragments are returned bare
+  for swapping.
+- Validation failures (missing title, unknown note id) return the `notes-errors` fragment
+  with an `HX-Target: #notes-errors` response header, so HTMX swaps the error banner instead
+  of the list.
 - A note only has one field: `title`. The text box in each note's row is that title, not a
   separate "content" field — it's easy to misread it as body text when skimming the list.
   Clicking "Update" without changing that text is a no-op update (no columns actually
   change), which relies on the database reporting matched rows rather than changed rows
   for `PDOStatement::rowCount()` — see the `driver_options` comment in
   [config/autoload/mysql.local.php.dist](config/autoload/mysql.local.php.dist). Without
-  that setting, a no-op update is misreported as `404 {"error":"note not found"}` even
-  though the note exists and matched.
+  that setting, a no-op update is misreported as "note not found" even though the note
+  exists and matched.
 
 ### Examples
+
+The `/notes` endpoints return HTML fragments (they are the HTMX endpoints); there is no
+separate JSON API for notes. `/ping` remains JSON.
 
 List notes:
 
 ```bash
 curl http://localhost:8080/notes
+# -> 200 <section id="notes-list"> ... </section>
 ```
 
 Create a note:
 
 ```bash
 curl -X POST http://localhost:8080/notes \
-  -H "Content-Type: application/json" \
-  -d '{"title":"my first note"}'
-# -> 201 {"id":"1","title":"my first note"}
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "title=my first note"
+# -> 200 notes-list fragment with the new note listed
 ```
 
 Update a note:
 
 ```bash
 curl -X PATCH http://localhost:8080/notes/1 \
-  -H "Content-Type: application/json" \
-  -d '{"title":"updated title"}'
-# -> 200 {"id":"1","title":"updated title"}
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "title=updated title"
+# -> 200 notes-list fragment
 ```
 
 Delete a note:
 
 ```bash
-curl -X DELETE http://localhost:8080/notes/1 \
-  -H "Content-Type: application/json"
-# -> 200 {"id":"1"}
+curl -X DELETE http://localhost:8080/notes/1
+# -> 200 notes-list fragment
 ```
 
 Error responses:
 
-- Missing/empty `title` on create or update returns `422 {"error":"title is required"}`.
-- Updating or deleting a non-existent note id returns `404 {"error":"note not found"}`.
+- Missing/empty `title` on create or update returns `200` with the error fragment and an
+  `HX-Target: #notes-errors` header ("title is required").
+- Updating or deleting a non-existent note id returns `200` with the error fragment and the
+  same header ("note not found").
 
 ## Testing
 
@@ -200,13 +207,19 @@ The application lives entirely in the `App` module ([src/App](src/App)):
   and their handlers, dispatched through `Webware\MessageBus\MessageBusInterface`.
 - `Query` / `QueryHandler` — `ListNotesQuery` and its handler.
 - `Handler` — PSR-15 request handlers (`HomePageHandler`, `PingHandler`, `NoteCommandHandler`,
-  `NoteQueryHandler`) that translate HTTP requests into bus commands/queries.
-- `Middleware` — `MethodOverrideMiddleware` (rewrites POST to PATCH/DELETE via a `_method`
-  form field) and `NoteFormRedirectMiddleware` (Post/Redirect/Get wrapper for HTML form
-  submissions to the `/notes` routes), see [Web UI](#web-ui) above.
+  `NoteListHandler`) that translate HTTP requests into bus commands/queries and render HTMX
+  fragments.
+- `Middleware` — `DetectAjaxRequestMiddleware` (piped early in `config/pipeline.php`) disables
+  the view layout for requests carrying the HTMX `HX-Request` header, so handlers return bare
+  fragments.
 - `Container` — factories wiring the above into the Laminas ServiceManager container.
-- `Event` / `Listener` — `NoteCreatedEvent`, dispatched via `webware/messagebus-event` and
-  handled by `NoteCreatedListener`, which logs the event via Tracy.
+- `Event` / `Listener` — `NoteCreatedEvent` (dispatched from `CreateNoteHandler`) plus the
+  command/query pipeline pre/post-handle events wired by `webware/messagebus-event`.
+  `NoteCreatedListener` and `MessageLifecycleListener` log them via Tracy to
+  `data/log/info.log`.
+- `Strategy` — the bus is wired to `Webware\MessageBus\Strategy\ClassnameStrategy`, so each
+  handler declares a method named after the message's short class name
+  (`createNoteCommand`, `listNotesQuery`, etc).
 - `Ddl` — `NotesTable::createIfNotExists()`, used by `bin/init-db` and the integration test
   suite to provision the `notes` table.
 

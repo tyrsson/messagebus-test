@@ -16,20 +16,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversMethod(HomePageHandlerFactory::class, '__invoke')]
 final class HomePageHandlerFactoryTest extends TestCase
 {
-    public function testFactoryWithoutTemplate(): void
+    public function testFactoryReturnsHomePageHandler(): void
     {
         $container = new InMemoryContainer();
-
-        $factory  = new HomePageHandlerFactory();
-        $homePage = $factory($container);
-
-        self::assertInstanceOf(HomePageHandler::class, $homePage);
-    }
-
-    public function testFactoryWithTemplate(): void
-    {
-        $container = new InMemoryContainer();
-        $container->setService(TemplateRendererInterface::class, $this->createStub(TemplateRendererInterface::class));
+        $container->setService(
+            TemplateRendererInterface::class,
+            $this->createStub(TemplateRendererInterface::class),
+        );
 
         $factory  = new HomePageHandlerFactory();
         $homePage = $factory($container);

@@ -26,9 +26,10 @@
         "mezzio/mezzio-fastroute": "^3.14",
         "mezzio/mezzio-helpers": "^5.20",
         "mezzio/mezzio-laminasviewrenderer": "^3.0",
-        "php-db/phpdb-mysql": "0.4.x-dev",
+        "php-db/phpdb-mysql": "0.5.x-dev",
         "php-standard-library/type": "^6.2",
-        "webware/messagebus-event": "^0.1.x-dev"
+        "webware/message-bus": "^2.0.0-beta.1",
+        "webware/messagebus-event": "^2.0.0-beta.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.5",

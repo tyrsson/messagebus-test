@@ -15,10 +15,10 @@ use Webware\MessageBus\MessageStatus;
 use Webware\MessageBus\Query\QueryResult;
 
 #[CoversClass(ListNotesHandler::class)]
-#[CoversMethod(ListNotesHandler::class, 'handle')]
+#[CoversMethod(ListNotesHandler::class, 'listNotesQuery')]
 final class ListNotesHandlerTest extends TestCase
 {
-    public function testHandleReturnsQueryResultWithRows(): void
+    public function testListNotesQueryReturnsQueryResultWithRows(): void
     {
         $rows = [['id' => 1, 'title' => 'first note']];
 
@@ -29,7 +29,7 @@ final class ListNotesHandlerTest extends TestCase
         $gateway->method('selectWith')->willReturn($resultSet);
 
         $handler = new ListNotesHandler($gateway);
-        $result  = $handler->handle(new ListNotesQuery());
+        $result  = $handler->listNotesQuery(new ListNotesQuery());
 
         self::assertInstanceOf(QueryResult::class, $result);
         self::assertSame(MessageStatus::Success, $result->getStatus());

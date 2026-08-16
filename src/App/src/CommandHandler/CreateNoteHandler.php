@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\CommandHandler;
 
 use App\Command\CreateNoteCommand;
-use App\Command\NoteCommandResult;
 use App\Event\NoteCreatedEvent;
-use Override;
 use PhpDb\Sql\Insert;
 use PhpDb\TableGateway\TableGateway;
-use Psl\Type;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use RuntimeException;
+use Webware\MessageBus\Command\CommandResult;
 use Webware\MessageBus\CommandHandlerInterface;
-use Webware\MessageBus\MessageInterface;
 use Webware\MessageBus\MessageStatus;
-use Webware\MessageBus\ResultInterface;
 
 final readonly class CreateNoteHandler implements CommandHandlerInterface
 {
@@ -23,15 +20,13 @@ final readonly class CreateNoteHandler implements CommandHandlerInterface
 
     public function __construct(
         private TableGateway $notes,
+        private EventDispatcherInterface $eventDispatcher,
     ) {}
 
-    #[Override]
-    public function handle(MessageInterface $message): ResultInterface
+    public function createNoteCommand(CreateNoteCommand $command): CommandResult
     {
-        $message = Type\instance_of(CreateNoteCommand::class)->assert($message);
-
         $insert = new Insert(self::TABLE);
-        $insert->values(['title' => $message->title]);
+        $insert->values(['title' => $command->title]);
 
         $this->notes->insertWith($insert);
         $id = $this->notes->getLastInsertValue();
@@ -40,9 +35,8 @@ final readonly class CreateNoteHandler implements CommandHandlerInterface
             throw new RuntimeException('Failed to determine the generated id for the new note.');
         }
 
-        $result = new NoteCommandResult($message, MessageStatus::Success, ['id' => $id, 'title' => $message->title]);
-        $result->setEvent(new NoteCreatedEvent($id, $message->title));
+        $this->eventDispatcher->dispatch(new NoteCreatedEvent($id, $command->title));
 
-        return $result;
+        return new CommandResult($command, MessageStatus::Success, ['id' => $id, 'title' => $command->title]);
     }
 }

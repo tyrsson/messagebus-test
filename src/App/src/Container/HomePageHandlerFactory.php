@@ -17,25 +17,11 @@ namespace App\Container;
 use App\Handler\HomePageHandler;
 use Mezzio\Template\TemplateRendererInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Webware\MessageBus\MessageBusInterface;
-
-use function assert;
 
 final class HomePageHandlerFactory
 {
-    public function __invoke(ContainerInterface $container): RequestHandlerInterface
+    public function __invoke(ContainerInterface $container): HomePageHandler
     {
-        $template = $container->has(TemplateRendererInterface::class)
-            ? $container->get(TemplateRendererInterface::class)
-            : null;
-        assert($template instanceof TemplateRendererInterface || null === $template);
-
-        $bus = $container->has(MessageBusInterface::class)
-            ? $container->get(MessageBusInterface::class)
-            : null;
-        assert($bus instanceof MessageBusInterface || null === $bus);
-
-        return new HomePageHandler($template, $bus);
+        return new HomePageHandler($container->get(TemplateRendererInterface::class));
     }
 }

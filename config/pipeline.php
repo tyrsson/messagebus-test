@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Middleware\MethodOverrideMiddleware;
+use App\Middleware\DetectAjaxRequestMiddleware;
 use Laminas\Stratigility\Middleware\ErrorHandler;
 use Mezzio\Application;
 use Mezzio\Handler\NotFoundHandler;
@@ -32,9 +32,9 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     // Parses request bodies (json, urlencoded, multipart) into getParsedBody().
     $app->pipe(BodyParamsMiddleware::class);
 
-    // HTML forms can't submit PATCH/PUT/DELETE; rewrites the method from a
-    // "_method" form field before routing matches against it.
-    $app->pipe(MethodOverrideMiddleware::class);
+    // Disables the layout for HTMX requests (HX-Request header) so handlers can
+    // return bare fragments for swapping.
+    $app->pipe(DetectAjaxRequestMiddleware::class);
 
     // Pipe more middleware here that you want to execute on every request:
     // - bootstrapping
