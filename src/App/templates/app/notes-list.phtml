@@ -26,6 +26,7 @@
                             hx-target="#notes-list"
                             hx-swap="outerHTML">Delete</button>
                     </fieldset>
+                    <textarea name="body" rows="3"><?= $this->escapeHtml($note['body'] ?? '') ?></textarea>
                     <small><?= $this->escapeHtml($note['created_at']) ?></small>
                 </form>
             </article>

@@ -11,6 +11,10 @@ use Webware\MessageBus\MessageBusInterface;
 
 final class NoteListHandlerFactory
 {
+    /**
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     public function __invoke(ContainerInterface $container): NoteListHandler
     {
         return new NoteListHandler(

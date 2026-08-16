@@ -43,6 +43,12 @@ final class IntegrationTestStartedListener implements StartedSubscriber
             Debugger::$$key = $value;
         }
 
-        NotesTable::createIfNotExists($container->get(AdapterInterface::class));
+        $adapter = $container->get(AdapterInterface::class);
+
+        // The notes table shape evolves (e.g. the body column added later), so
+        // recreate it per suite run for determinism.
+        $adapter->query('DROP TABLE IF EXISTS notes', AdapterInterface::QUERY_MODE_EXECUTE);
+
+        NotesTable::createIfNotExists($adapter);
     }
 }

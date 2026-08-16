@@ -10,5 +10,6 @@ final readonly class CreateNoteCommand implements CommandInterface
 {
     public function __construct(
         public string $title,
+        public ?string $body = null,
     ) {}
 }

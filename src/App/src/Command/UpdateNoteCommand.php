@@ -11,5 +11,6 @@ final readonly class UpdateNoteCommand implements CommandInterface
     public function __construct(
         public string $id,
         public string $title,
+        public ?string $body = null,
     ) {}
 }

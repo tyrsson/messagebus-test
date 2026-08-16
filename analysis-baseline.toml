@@ -1,0 +1,175 @@
+variant = "loose"
+
+[[issues]]
+file = "src/App/src/ConfigProvider.php"
+code = "class-must-be-final"
+message = 'Class `App\ConfigProvider` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/ConfigProvider.php"
+code = "invalid-return-statement"
+message = '''Invalid return type for function `App\ConfigProvider::__invoke`: expected `array{'dependencies': array{'aliases'?: array<class-string, class-string>, 'delegators'?: array<class-string, list<class-string>>, 'factories'?: array<class-string, class-string>, 'invokables'?: array<class-string, class-string>}, 'templates': array{'default_layout': string, 'map': array<string, string>, 'paths': array<string, list<string>>}}`, but found `array{'Webware\MessageBus\MessageBusInterface': array{'command_map': array<class-string, class-string>, 'middleware_pipeline': list<array{'middleware': class-string, 'priority'?: int}>, 'query_map': array<class-string, class-string>}, 'dependencies': array{'aliases'?: array<class-string, class-string>, 'delegators'?: array<class-string, list<class-string>>, 'factories'?: array<class-string, class-string>, 'invokables'?: array<class-string, class-string>}, 'listeners': array<class-string, list<class-string>>, 'router': array{'route-providers': list<class-string>}, 'templates': array{'default_layout': string, 'map': array<string, string>, 'paths': array<string, list<string>>}}`.'''
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/CreateNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `App\Container\CreateNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/CreateNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\CreateNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/CreateNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `App\Container\CreateNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/DeleteNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `App\Container\DeleteNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/DeleteNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\DeleteNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/HomePageHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\HomePageHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/HomePageHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `App\Container\HomePageHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/ListNotesHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `App\Container\ListNotesHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/ListNotesHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\ListNotesHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/NoteCommandHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\NoteCommandHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/NoteCommandHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `App\Container\NoteCommandHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/NotesTableGatewayFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\NotesTableGatewayFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/NotesTableGatewayFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `App\Container\NotesTableGatewayFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/RouteProviderFactory.php"
+code = "unused-parameter"
+message = "Parameter `$container` is never used."
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/UpdateNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `App\Container\UpdateNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Container/UpdateNoteHandlerFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Container\UpdateNoteHandlerFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Handler/PingHandler.php"
+code = "missing-override-attribute"
+message = 'Missing `#[Override]` attribute on overriding method `App\Handler\PingHandler::handle`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Listener/NoteCreatedListener.php"
+code = "missing-override-attribute"
+message = 'Missing `#[Override]` attribute on overriding method `App\Listener\NoteCreatedListener::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Listener/NoteCreatedListener.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/App/src/Listener/NoteCreatedListener.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/App/src/Middleware/DetectAjaxRequestMiddleware.php"
+code = "class-must-be-final"
+message = 'Class `App\Middleware\DetectAjaxRequestMiddleware` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Middleware/DetectAjaxRequestMiddleware.php"
+code = "missing-override-attribute"
+message = 'Missing `#[Override]` attribute on overriding method `App\Middleware\DetectAjaxRequestMiddleware::process`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Middleware/DetectAjaxRequestMiddlewareFactory.php"
+code = "class-must-be-final"
+message = 'Class `App\Middleware\DetectAjaxRequestMiddlewareFactory` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Middleware/DetectAjaxRequestMiddlewareFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `App\Middleware\DetectAjaxRequestMiddlewareFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/Middleware/DetectAjaxRequestMiddlewareFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `App\Middleware\DetectAjaxRequestMiddlewareFactory::__invoke`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/RouteProvider.php"
+code = "missing-override-attribute"
+message = 'Missing `#[Override]` attribute on overriding method `App\RouteProvider::registerRoutes`.'
+count = 1
+
+[[issues]]
+file = "src/App/src/RouteProvider.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Mezzio\Exception\InvalidMiddlewareException` in `App\RouteProvider::registerRoutes`.'
+count = 1

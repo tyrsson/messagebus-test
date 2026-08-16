@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listener;
 
+use Override;
 use Tracy\Debugger;
 use Tracy\ILogger;
 use Webware\MessageBus\Event\Command\CommandPostHandleEvent;
@@ -12,6 +13,8 @@ use Webware\MessageBus\Event\EventInterface;
 use Webware\MessageBus\Event\ListenerInterface;
 use Webware\MessageBus\Event\Query\QueryPostHandleEvent;
 use Webware\MessageBus\Event\Query\QueryPreHandleEvent;
+use Webware\MessageBus\MessageStatus;
+use Webware\MessageBus\StatusInterface;
 
 use function sprintf;
 
@@ -20,6 +23,12 @@ use function sprintf;
 // webware/messagebus-event.
 final class MessageLifecycleListener implements ListenerInterface
 {
+    private function statusName(StatusInterface $status): string
+    {
+        return $status instanceof MessageStatus ? $status->name : $status::class;
+    }
+
+    #[Override]
     public function __invoke(EventInterface $event): void
     {
         $message = match (true) {
@@ -30,7 +39,7 @@ final class MessageLifecycleListener implements ListenerInterface
             $event instanceof CommandPostHandleEvent => sprintf(
                 'command post-handle: %s status=%s',
                 $event->getCommand()::class,
-                $event->getResult()->getStatus()->name,
+                $this->statusName($event->getResult()->getStatus()),
             ),
             $event instanceof QueryPreHandleEvent => sprintf(
                 'query pre-handle: %s',
@@ -39,7 +48,7 @@ final class MessageLifecycleListener implements ListenerInterface
             $event instanceof QueryPostHandleEvent => sprintf(
                 'query post-handle: %s status=%s',
                 $event->getQuery()::class,
-                $event->getResult()->getStatus()->name,
+                $this->statusName($event->getResult()->getStatus()),
             ),
             default => null,
         };

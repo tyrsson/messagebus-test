@@ -32,7 +32,7 @@ final class CreateNoteHandlerTest extends TestCase
             ->with(self::isInstanceOf(NoteCreatedEvent::class));
 
         $handler = new CreateNoteHandler($gateway, $dispatcher);
-        $result  = $handler->createNoteCommand(new CreateNoteCommand('first note'));
+        $result  = $handler->createNoteCommand(new CreateNoteCommand('first note', 'note body'));
 
         self::assertInstanceOf(CommandResult::class, $result);
         self::assertSame(MessageStatus::Success, $result->getStatus());
