@@ -24,6 +24,12 @@ extend a `final` class — this example is a fatal PHP error (`Class ... cannot 
 and `EventAwareInterface` directly (via `EventAwareTrait`), reimplementing the constructor and the three
 getters (`getCommand()`, `getResult()`, `getStatus()`) itself instead of extending `CommandResult`.
 
+**Superseded with the 2.0.0-beta.1 bump**: the v2 docs now instruct handlers to always return the
+library `CommandResult` / `QueryResult` value objects and to dispatch custom domain events directly
+from the handler via `Psr\EventDispatcher\EventDispatcherInterface` instead of attaching them to the
+result. `App\Command\NoteCommandResult` has been removed; `App\CommandHandler\CreateNoteHandler` now
+dispatches `NoteCreatedEvent` directly before returning a `CommandResult`.
+
 ## 2. `webware/message-bus`: inconsistent `@api`/`@internal` tagging between Command and Query results
 
 `Command\CommandResultInterface` is tagged `@api`, while `Query\QueryResultInterface` is tagged
@@ -153,6 +159,9 @@ realistic constraint.
 
 **UPDATE**: still present as of `php-db/phpdb-mysql` `0.4.x-dev` — confirmed by re-reading the installed
 source after bumping this project's dependency; `PhpDb\Mysql\Statement` still has no `__clone()` method.
+
+**UPDATE 2**: still present on the `0.5.x` branch (checked 2026-08-16). This project now tracks
+`php-db/phpdb-mysql` `0.5.x-dev` and keeps the PDO-driver workaround below.
 
 **Workaround currently in effect in this repo**: `config/autoload/mysql.local.php` switched
 `AdapterInterface::class`'s `'driver'` from `PhpDb\Mysql\Driver` (mysqli) to `PhpDb\Mysql\Pdo\Driver`

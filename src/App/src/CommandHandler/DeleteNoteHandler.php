@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\CommandHandler;
 
 use App\Command\DeleteNoteCommand;
-use App\Command\NoteCommandResult;
-use Override;
 use PhpDb\Sql\Delete;
 use PhpDb\TableGateway\TableGateway;
-use Psl\Type;
+use Webware\MessageBus\Command\CommandResult;
 use Webware\MessageBus\CommandHandlerInterface;
-use Webware\MessageBus\MessageInterface;
 use Webware\MessageBus\MessageStatus;
-use Webware\MessageBus\ResultInterface;
 
 final readonly class DeleteNoteHandler implements CommandHandlerInterface
 {
@@ -23,17 +19,14 @@ final readonly class DeleteNoteHandler implements CommandHandlerInterface
         private TableGateway $notes,
     ) {}
 
-    #[Override]
-    public function handle(MessageInterface $message): ResultInterface
+    public function deleteNoteCommand(DeleteNoteCommand $command): CommandResult
     {
-        $message = Type\instance_of(DeleteNoteCommand::class)->assert($message);
-
         $delete = new Delete(self::TABLE);
-        $delete->where(['id' => $message->id]);
+        $delete->where(['id' => $command->id]);
 
         $affected = $this->notes->deleteWith($delete);
         $status   = $affected > 0 ? MessageStatus::Success : MessageStatus::Failure;
 
-        return new NoteCommandResult($message, $status, ['id' => $message->id]);
+        return new CommandResult($command, $status, ['id' => $command->id]);
     }
 }

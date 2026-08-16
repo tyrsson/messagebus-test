@@ -14,41 +14,20 @@ declare(strict_types=1);
 
 namespace App\Handler;
 
-use App\Query\ListNotesQuery;
-use Laminas\Diactoros\Response;
+use Laminas\Diactoros\Response\HtmlResponse;
 use Mezzio\Template\TemplateRendererInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Webware\MessageBus\MessageBusInterface;
-
-use function is_string;
 
 final class HomePageHandler implements RequestHandlerInterface
 {
     public function __construct(
-        private readonly ?TemplateRendererInterface $template = null,
-        private readonly ?MessageBusInterface $bus = null,
+        private readonly TemplateRendererInterface $template,
     ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $data = [
-            'message' => 'Welcome to Mezzio!',
-        ];
-        if (null === $this->template) {
-            return new Response\JsonResponse($data);
-        }
-
-        if (null !== $this->bus) {
-            $data['notes'] = $this->bus->handle(new ListNotesQuery())->getResult();
-        }
-
-        $error = $request->getQueryParams()['error'] ?? null;
-        if (is_string($error)) {
-            $data['error'] = $error;
-        }
-
-        return new Response\HtmlResponse($this->template->render('app::home-page', $data));
+        return new HtmlResponse($this->template->render('app::home-page'));
     }
 }

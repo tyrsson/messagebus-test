@@ -8,7 +8,9 @@ use App\Command\CreateNoteCommand;
 use App\Command\DeleteNoteCommand;
 use App\Command\UpdateNoteCommand;
 use App\Handler\NoteCommandHandler;
-use Laminas\Diactoros\Response\JsonResponse;
+use App\Query\ListNotesQuery;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Mezzio\Template\TemplateRendererInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
@@ -22,44 +24,63 @@ use Webware\MessageBus\ResultInterface;
 #[CoversMethod(NoteCommandHandler::class, 'handle')]
 final class NoteCommandHandlerTest extends TestCase
 {
-    public function testHandleDeleteRemovesNoteAndReturns200(): void
-    {
-        $request = $this->createStub(ServerRequestInterface::class);
-        $request->method('getMethod')->willReturn('DELETE');
-        $request->method('getAttribute')->willReturn('1');
-
-        $result = $this->createStub(ResultInterface::class);
-        $result->method('getStatus')->willReturn(MessageStatus::Success);
-        $result->method('getResult')->willReturn(['id' => '1']);
-
-        $bus = $this->createMock(MessageBusInterface::class);
-        $bus->expects(self::once())
-            ->method('handle')
-            ->with(self::isInstanceOf(DeleteNoteCommand::class))
-            ->willReturn($result);
-
-        $handler  = new NoteCommandHandler($bus);
-        $response = $handler->handle($request);
-
-        self::assertSame(200, $response->getStatusCode());
-    }
-
-    public function testHandleDeleteReturns404WhenNoteNotFound(): void
+    public function testHandleDeleteReturnsErrorFragmentWhenNoteNotFound(): void
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getMethod')->willReturn('DELETE');
         $request->method('getAttribute')->willReturn('999');
 
-        $result = $this->createStub(ResultInterface::class);
-        $result->method('getStatus')->willReturn(MessageStatus::Failure);
+        $deleteResult = $this->createStub(ResultInterface::class);
+        $deleteResult->method('getStatus')->willReturn(MessageStatus::Failure);
 
         $bus = $this->createStub(MessageBusInterface::class);
-        $bus->method('handle')->willReturn($result);
+        $bus->method('handle')->willReturn($deleteResult);
 
-        $handler  = new NoteCommandHandler($bus);
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-errors', ['error' => 'note not found'])
+            ->willReturn('<p role="alert">note not found</p>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
         $response = $handler->handle($request);
 
-        self::assertSame(404, $response->getStatusCode());
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('#notes-errors', $response->getHeaderLine('HX-Target'));
+    }
+
+    public function testHandleDeleteReturnsListFragment(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getMethod')->willReturn('DELETE');
+        $request->method('getAttribute')->willReturn('1');
+
+        $deleteResult = $this->createStub(ResultInterface::class);
+        $deleteResult->method('getStatus')->willReturn(MessageStatus::Success);
+
+        $rows = [['id' => 1, 'title' => 'first note']];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                fn(object $message) => $message instanceof DeleteNoteCommand
+                    ? $deleteResult
+                    : $this->listResult($rows),
+            );
+
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-list', ['notes' => $rows])
+            ->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertInstanceOf(HtmlResponse::class, $response);
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('notes-list', (string) $response->getBody());
     }
 
     public function testHandleDeleteThrowsWhenIdAttributeMissing(): void
@@ -68,29 +89,73 @@ final class NoteCommandHandlerTest extends TestCase
         $request->method('getMethod')->willReturn('DELETE');
         $request->method('getAttribute')->willReturn(null);
 
-        $handler = new NoteCommandHandler($this->createStub(MessageBusInterface::class));
+        $handler = new NoteCommandHandler(
+            $this->createStub(MessageBusInterface::class),
+            $this->createStub(TemplateRendererInterface::class),
+        );
 
         $this->expectException(AssertException::class);
         $handler->handle($request);
     }
 
-    public function testHandlePatchReturns404WhenNoteNotFound(): void
+    public function testHandlePatchReturnsErrorFragmentWhenNoteNotFound(): void
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn(['title' => 'renamed']);
         $request->method('getMethod')->willReturn('PATCH');
         $request->method('getAttribute')->willReturn('999');
 
-        $result = $this->createStub(ResultInterface::class);
-        $result->method('getStatus')->willReturn(MessageStatus::Failure);
+        $updateResult = $this->createStub(ResultInterface::class);
+        $updateResult->method('getStatus')->willReturn(MessageStatus::Failure);
 
         $bus = $this->createStub(MessageBusInterface::class);
-        $bus->method('handle')->willReturn($result);
+        $bus->method('handle')->willReturn($updateResult);
 
-        $handler  = new NoteCommandHandler($bus);
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-errors', ['error' => 'note not found'])
+            ->willReturn('<p role="alert">note not found</p>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
         $response = $handler->handle($request);
 
-        self::assertSame(404, $response->getStatusCode());
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('#notes-errors', $response->getHeaderLine('HX-Target'));
+    }
+
+    public function testHandlePatchReturnsListFragment(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getParsedBody')->willReturn(['title' => 'renamed']);
+        $request->method('getMethod')->willReturn('PATCH');
+        $request->method('getAttribute')->willReturn('1');
+
+        $updateResult = $this->createStub(ResultInterface::class);
+        $updateResult->method('getStatus')->willReturn(MessageStatus::Success);
+
+        $rows = [['id' => 1, 'title' => 'renamed']];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                fn(object $message) => $message instanceof UpdateNoteCommand
+                    ? $updateResult
+                    : $this->listResult($rows),
+            );
+
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-list', ['notes' => $rows])
+            ->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('notes-list', (string) $response->getBody());
     }
 
     public function testHandlePatchThrowsWhenIdAttributeMissing(): void
@@ -100,57 +165,16 @@ final class NoteCommandHandlerTest extends TestCase
         $request->method('getMethod')->willReturn('PATCH');
         $request->method('getAttribute')->willReturn(null);
 
-        $handler = new NoteCommandHandler($this->createStub(MessageBusInterface::class));
+        $handler = new NoteCommandHandler(
+            $this->createStub(MessageBusInterface::class),
+            $this->createStub(TemplateRendererInterface::class),
+        );
 
         $this->expectException(AssertException::class);
         $handler->handle($request);
     }
 
-    public function testHandlePatchUpdatesNoteAndReturns200(): void
-    {
-        $request = $this->createStub(ServerRequestInterface::class);
-        $request->method('getParsedBody')->willReturn(['title' => 'renamed']);
-        $request->method('getMethod')->willReturn('PATCH');
-        $request->method('getAttribute')->willReturn('1');
-
-        $result = $this->createStub(ResultInterface::class);
-        $result->method('getStatus')->willReturn(MessageStatus::Success);
-        $result->method('getResult')->willReturn(['id' => '1', 'title' => 'renamed']);
-
-        $bus = $this->createMock(MessageBusInterface::class);
-        $bus->expects(self::once())
-            ->method('handle')
-            ->with(self::isInstanceOf(UpdateNoteCommand::class))
-            ->willReturn($result);
-
-        $handler  = new NoteCommandHandler($bus);
-        $response = $handler->handle($request);
-
-        self::assertSame(200, $response->getStatusCode());
-    }
-
-    public function testHandlePostCreatesNoteAndReturns201(): void
-    {
-        $request = $this->createStub(ServerRequestInterface::class);
-        $request->method('getParsedBody')->willReturn(['title' => 'first note']);
-        $request->method('getMethod')->willReturn('POST');
-
-        $result = $this->createStub(ResultInterface::class);
-        $result->method('getResult')->willReturn(['id' => 1, 'title' => 'first note']);
-
-        $bus = $this->createMock(MessageBusInterface::class);
-        $bus->expects(self::once())
-            ->method('handle')
-            ->with(self::isInstanceOf(CreateNoteCommand::class))
-            ->willReturn($result);
-
-        $handler  = new NoteCommandHandler($bus);
-        $response = $handler->handle($request);
-
-        self::assertSame(201, $response->getStatusCode());
-    }
-
-    public function testHandleReturns422WhenTitleMissing(): void
+    public function testHandlePostReturnsErrorFragmentWhenTitleMissing(): void
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getParsedBody')->willReturn([]);
@@ -159,10 +183,56 @@ final class NoteCommandHandlerTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::never())->method('handle');
 
-        $handler  = new NoteCommandHandler($bus);
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-errors', ['error' => 'title is required'])
+            ->willReturn('<p role="alert">title is required</p>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
         $response = $handler->handle($request);
 
-        self::assertInstanceOf(JsonResponse::class, $response);
-        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('#notes-errors', $response->getHeaderLine('HX-Target'));
+    }
+
+    public function testHandlePostReturnsListFragment(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getParsedBody')->willReturn(['title' => 'first note']);
+        $request->method('getMethod')->willReturn('POST');
+
+        $createResult = $this->createStub(ResultInterface::class);
+
+        $rows = [['id' => 1, 'title' => 'first note']];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                fn(object $message) => $message instanceof CreateNoteCommand
+                    ? $createResult
+                    : $this->listResult($rows),
+            );
+
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-list', ['notes' => $rows])
+            ->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('notes-list', (string) $response->getBody());
+    }
+
+    private function listResult(array $rows): ResultInterface
+    {
+        $result = $this->createStub(ResultInterface::class);
+        $result->method('getResult')->willReturn($rows);
+
+        return $result;
     }
 }

@@ -1,16 +1,15 @@
 <?php $this->headTitle('Notes'); ?>
 
-<?php if (isset($this->error)): ?>
-    <article style="border-color: #c00;">
-        <p><?= $this->escapeHtml($this->error) ?></p>
-    </article>
-<?php endif; ?>
-
 <article>
     <header>
         <h2>Add a note</h2>
     </header>
-    <form method="post" action="<?= $this->url('notes.create') ?>">
+    <form method="post"
+        action="<?= $this->url('notes.create') ?>"
+        hx-post="<?= $this->url('notes.create') ?>"
+        hx-target="#notes-list"
+        hx-swap="outerHTML"
+        hx-on::after-request="if(event.detail.successful) this.reset()">
         <fieldset role="group">
             <input type="text" name="title" required maxlength="255" placeholder="What do you want to remember?">
             <button type="submit">Add</button>
@@ -18,32 +17,11 @@
     </form>
 </article>
 
-<article>
-    <header>
-        <h2>Notes</h2>
-    </header>
-    <?php if (empty($this->notes)): ?>
-        <p>No notes yet.</p>
-    <?php else: ?>
-        <?php foreach ($this->notes as $note): ?>
-            <form method="post" action="<?= $this->url('notes.update', ['id' => $note['id']]) ?>">
-                <input type="hidden" name="_method" value="PATCH">
-                <fieldset role="group">
-                    <input type="text" name="title" required maxlength="255" value="<?= $this->escapeHtml(
-                        $note['title'],
-                    ) ?>">
-                    <button type="submit">Update</button>
-                    <button type="submit" form="delete-note-<?= $this->escapeHtml(
-                        $note['id'],
-                    ) ?>" class="secondary">Delete</button>
-                </fieldset>
-                <small><?= $this->escapeHtml($note['created_at']) ?></small>
-            </form>
-            <form id="delete-note-<?= $this->escapeHtml(
-                $note['id'],
-            ) ?>" method="post" action="<?= $this->url('notes.delete', ['id' => $note['id']]) ?>">
-                <input type="hidden" name="_method" value="DELETE">
-            </form>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</article>
+<div id="notes-errors"></div>
+
+<section id="notes-list"
+    hx-get="<?= $this->url('notes.list') ?>"
+    hx-trigger="load"
+    hx-swap="outerHTML">
+    <p aria-busy="true">Loading notes...</p>
+</section>

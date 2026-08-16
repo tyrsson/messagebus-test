@@ -5,43 +5,50 @@ declare(strict_types=1);
 namespace AppTest\CommandHandler;
 
 use App\Command\CreateNoteCommand;
-use App\Command\NoteCommandResult;
 use App\CommandHandler\CreateNoteHandler;
 use App\Event\NoteCreatedEvent;
 use PhpDb\TableGateway\TableGateway;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use RuntimeException;
+use Webware\MessageBus\Command\CommandResult;
 use Webware\MessageBus\MessageStatus;
 
 #[CoversClass(CreateNoteHandler::class)]
-#[CoversMethod(CreateNoteHandler::class, 'handle')]
+#[CoversMethod(CreateNoteHandler::class, 'createNoteCommand')]
 final class CreateNoteHandlerTest extends TestCase
 {
-    public function testHandleInsertsAndReturnsSuccessResultWithEvent(): void
+    public function testCreateNoteInsertsDispatchesEventAndReturnsSuccessResult(): void
     {
         $gateway = $this->createMock(TableGateway::class);
         $gateway->expects(self::once())->method('insertWith');
         $gateway->method('getLastInsertValue')->willReturn(1);
 
-        $handler = new CreateNoteHandler($gateway);
-        $result  = $handler->handle(new CreateNoteCommand('first note'));
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with(self::isInstanceOf(NoteCreatedEvent::class));
 
-        self::assertInstanceOf(NoteCommandResult::class, $result);
+        $handler = new CreateNoteHandler($gateway, $dispatcher);
+        $result  = $handler->createNoteCommand(new CreateNoteCommand('first note'));
+
+        self::assertInstanceOf(CommandResult::class, $result);
         self::assertSame(MessageStatus::Success, $result->getStatus());
         self::assertSame(['id' => 1, 'title' => 'first note'], $result->getResult());
-        self::assertInstanceOf(NoteCreatedEvent::class, $result->getEvent());
     }
 
-    public function testHandleThrowsWhenLastInsertValueIsUnavailable(): void
+    public function testCreateNoteThrowsWhenLastInsertValueIsUnavailable(): void
     {
         $gateway = $this->createStub(TableGateway::class);
         $gateway->method('getLastInsertValue')->willReturn(false);
 
-        $handler = new CreateNoteHandler($gateway);
+        $dispatcher = $this->createStub(EventDispatcherInterface::class);
+
+        $handler = new CreateNoteHandler($gateway, $dispatcher);
 
         $this->expectException(RuntimeException::class);
-        $handler->handle(new CreateNoteCommand('first note'));
+        $handler->createNoteCommand(new CreateNoteCommand('first note'));
     }
 }

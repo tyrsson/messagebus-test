@@ -7,8 +7,10 @@ namespace App\Handler;
 use App\Command\CreateNoteCommand;
 use App\Command\DeleteNoteCommand;
 use App\Command\UpdateNoteCommand;
+use App\Query\ListNotesQuery;
 use Fig\Http\Message\RequestMethodInterface as HttpMethod;
-use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Diactoros\Response\HtmlResponse;
+use Mezzio\Template\TemplateRendererInterface;
 use Psl\Type;
 use Psl\Type\Exception\AssertException;
 use Psr\Http\Message\ResponseInterface;
@@ -19,10 +21,9 @@ use Webware\MessageBus\MessageStatus;
 
 final readonly class NoteCommandHandler implements RequestHandlerInterface
 {
-    private const int JSON_FLAGS = JsonResponse::DEFAULT_JSON_FLAGS | JSON_PRETTY_PRINT;
-
     public function __construct(
         private MessageBusInterface $bus,
+        private TemplateRendererInterface $template,
     ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -34,6 +35,19 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
         };
     }
 
+    /**
+     * HTMX does not swap non-2xx bodies, so errors are returned as 200 with an
+     * HX-Target header routing the fragment to the #notes-errors container.
+     */
+    private function error(string $message): ResponseInterface
+    {
+        return new HtmlResponse(
+            $this->template->render('app::notes-errors', ['error' => $message]),
+            200,
+            ['HX-Target' => '#notes-errors'],
+        );
+    }
+
     private function handleDelete(ServerRequestInterface $request): ResponseInterface
     {
         $id = Type\non_empty_string()->assert($request->getAttribute('id'));
@@ -41,10 +55,10 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
         $result = $this->bus->handle(new DeleteNoteCommand($id));
 
         if ($result->getStatus() === MessageStatus::Failure) {
-            return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
+            return $this->error('note not found');
         }
 
-        return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+        return $this->renderList();
     }
 
     private function handlePatch(ServerRequestInterface $request): ResponseInterface
@@ -55,16 +69,16 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
                 $request->getParsedBody(),
             )['title'];
         } catch (AssertException) {
-            return new JsonResponse(['error' => 'title is required'], 422, [], self::JSON_FLAGS);
+            return $this->error('title is required');
         }
 
         $result = $this->bus->handle(new UpdateNoteCommand($id, $title));
 
         if ($result->getStatus() === MessageStatus::Failure) {
-            return new JsonResponse(['error' => 'note not found'], 404, [], self::JSON_FLAGS);
+            return $this->error('note not found');
         }
 
-        return new JsonResponse($result->getResult(), 200, [], self::JSON_FLAGS);
+        return $this->renderList();
     }
 
     private function handlePost(ServerRequestInterface $request): ResponseInterface
@@ -74,11 +88,20 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
                 $request->getParsedBody(),
             )['title'];
         } catch (AssertException) {
-            return new JsonResponse(['error' => 'title is required'], 422, [], self::JSON_FLAGS);
+            return $this->error('title is required');
         }
 
-        $result = $this->bus->handle(new CreateNoteCommand($title));
+        $this->bus->handle(new CreateNoteCommand($title));
 
-        return new JsonResponse($result->getResult(), 201, [], self::JSON_FLAGS);
+        return $this->renderList();
+    }
+
+    private function renderList(): ResponseInterface
+    {
+        $result = $this->bus->handle(new ListNotesQuery());
+
+        return new HtmlResponse(
+            $this->template->render('app::notes-list', ['notes' => $result->getResult()]),
+        );
     }
 }

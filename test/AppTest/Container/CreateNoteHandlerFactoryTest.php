@@ -11,6 +11,7 @@ use PhpDb\TableGateway\TableGateway;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(CreateNoteHandlerFactory::class)]
 #[CoversMethod(CreateNoteHandlerFactory::class, '__invoke')]
@@ -21,7 +22,8 @@ final class CreateNoteHandlerFactoryTest extends TestCase
         $gateway   = $this->createStub(TableGateway::class);
         $container = new ServiceManager([
             'factories' => [
-                TableGateway::class => static fn(): TableGateway => $gateway,
+                TableGateway::class             => static fn(): TableGateway => $gateway,
+                EventDispatcherInterface::class => fn(): EventDispatcherInterface => $this->createStub(EventDispatcherInterface::class),
             ],
         ]);
 

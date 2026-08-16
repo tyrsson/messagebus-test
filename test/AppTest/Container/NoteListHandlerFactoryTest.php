@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AppTest\Container;
 
-use App\Container\NoteCommandHandlerFactory;
-use App\Handler\NoteCommandHandler;
+use App\Container\NoteListHandlerFactory;
+use App\Handler\NoteListHandler;
 use AppTest\InMemoryContainer;
 use Mezzio\Template\TemplateRendererInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -13,11 +13,11 @@ use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 use Webware\MessageBus\MessageBusInterface;
 
-#[CoversClass(NoteCommandHandlerFactory::class)]
-#[CoversMethod(NoteCommandHandlerFactory::class, '__invoke')]
-final class NoteCommandHandlerFactoryTest extends TestCase
+#[CoversClass(NoteListHandlerFactory::class)]
+#[CoversMethod(NoteListHandlerFactory::class, '__invoke')]
+final class NoteListHandlerFactoryTest extends TestCase
 {
-    public function testFactoryReturnsNoteCommandHandler(): void
+    public function testFactoryReturnsNoteListHandler(): void
     {
         $container = new InMemoryContainer();
         $container->setService(MessageBusInterface::class, $this->createStub(MessageBusInterface::class));
@@ -26,9 +26,9 @@ final class NoteCommandHandlerFactoryTest extends TestCase
             $this->createStub(TemplateRendererInterface::class),
         );
 
-        $factory = new NoteCommandHandlerFactory();
+        $factory = new NoteListHandlerFactory();
         $handler = $factory($container);
 
-        self::assertInstanceOf(NoteCommandHandler::class, $handler);
+        self::assertInstanceOf(NoteListHandler::class, $handler);
     }
 }
