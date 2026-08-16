@@ -50,8 +50,13 @@ php bin/init-db
 [config/autoload/mysql.local.php.dist](config/autoload/mysql.local.php.dist) if it's missing,
 using connection settings matching the docker-compose defaults above.
 
-(The integration test suite also creates this table automatically if it doesn't exist, and
-deliberately leaves the data in place after running so it can be inspected via phpMyAdmin.)
+(The integration test suite drops and recreates the `notes` table at the start of each run, so DDL
+changes are picked up automatically; rows written by the tests are left in place for inspection via
+phpMyAdmin.)
+
+> **Migration note**: `bin/init-db` only creates the table if it does not exist. If your database
+> was created before the `body` column was added, drop the table once (`DROP TABLE notes;` via
+> phpMyAdmin or a MySQL client) and re-run `php bin/init-db`.
 
 ## Running the app
 
@@ -122,9 +127,8 @@ middleware:
 - Validation failures (missing title, unknown note id) return the `notes-errors` fragment
   with an `HX-Target: #notes-errors` response header, so HTMX swaps the error banner instead
   of the list.
-- A note only has one field: `title`. The text box in each note's row is that title, not a
-  separate "content" field — it's easy to misread it as body text when skimming the list.
-  Clicking "Update" without changing that text is a no-op update (no columns actually
+- A note has a required `title` and an optional `body` (a `<textarea>` in each form). Clicking
+  "Update" without changing anything is a no-op update (no columns actually
   change), which relies on the database reporting matched rows rather than changed rows
   for `PDOStatement::rowCount()` — see the `driver_options` comment in
   [config/autoload/mysql.local.php.dist](config/autoload/mysql.local.php.dist). Without
@@ -148,7 +152,7 @@ Create a note:
 ```bash
 curl -X POST http://localhost:8080/notes \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "title=my first note"
+  -d "title=my first note&body=optional body"
 # -> 200 notes-list fragment with the new note listed
 ```
 
@@ -157,7 +161,7 @@ Update a note:
 ```bash
 curl -X PATCH http://localhost:8080/notes/1 \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "title=updated title"
+  -d "title=updated title&body=updated body"
 # -> 200 notes-list fragment
 ```
 

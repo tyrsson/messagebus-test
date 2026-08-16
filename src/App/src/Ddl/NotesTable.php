@@ -26,6 +26,7 @@ final class NotesTable
         $table->addColumn($id);
 
         $table->addColumn(new Column\Varchar('title', 255));
+        $table->addColumn(new Column\Text('body', null, true));
 
         // A plain string default is bound/quoted as a string literal rather than
         // rendered as the raw SQL keyword - see docs/failure-notes.md #7. Literal

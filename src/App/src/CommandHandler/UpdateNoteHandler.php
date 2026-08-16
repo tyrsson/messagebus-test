@@ -22,7 +22,7 @@ final readonly class UpdateNoteHandler implements CommandHandlerInterface
     public function updateNoteCommand(UpdateNoteCommand $command): CommandResult
     {
         $update = new Update(self::TABLE);
-        $update->set(['title' => $command->title]);
+        $update->set(['title' => $command->title, 'body' => $command->body]);
         $update->where(['id' => $command->id]);
 
         $affected = $this->notes->updateWith($update);

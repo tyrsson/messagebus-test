@@ -98,6 +98,42 @@ final class NoteCommandHandlerTest extends TestCase
         $handler->handle($request);
     }
 
+    public function testHandlePatchPassesBodyToCommand(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getParsedBody')->willReturn(['title' => 'renamed', 'body' => 'renamed body']);
+        $request->method('getMethod')->willReturn('PATCH');
+        $request->method('getAttribute')->willReturn('1');
+
+        $updateResult = $this->createStub(ResultInterface::class);
+        $updateResult->method('getStatus')->willReturn(MessageStatus::Success);
+
+        $rows = [['id' => 1, 'title' => 'renamed', 'body' => 'renamed body']];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                function (object $message) use ($updateResult, $rows): ResultInterface {
+                    if ($message instanceof UpdateNoteCommand) {
+                        self::assertSame('renamed body', $message->body);
+
+                        return $updateResult;
+                    }
+
+                    return $this->listResult($rows);
+                },
+            );
+
+        $template = $this->createStub(TemplateRendererInterface::class);
+        $template->method('render')->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
     public function testHandlePatchReturnsErrorFragmentWhenNoteNotFound(): void
     {
         $request = $this->createStub(ServerRequestInterface::class);
@@ -172,6 +208,77 @@ final class NoteCommandHandlerTest extends TestCase
 
         $this->expectException(AssertException::class);
         $handler->handle($request);
+    }
+
+    public function testHandlePostNormalizesEmptyBodyToNull(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getParsedBody')->willReturn(['title' => 'first note', 'body' => '']);
+        $request->method('getMethod')->willReturn('POST');
+
+        $createResult = $this->createStub(ResultInterface::class);
+
+        $rows = [['id' => 1, 'title' => 'first note', 'body' => null]];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                function (object $message) use ($createResult, $rows): ResultInterface {
+                    if ($message instanceof CreateNoteCommand) {
+                        self::assertNull($message->body);
+
+                        return $createResult;
+                    }
+
+                    return $this->listResult($rows);
+                },
+            );
+
+        $template = $this->createStub(TemplateRendererInterface::class);
+        $template->method('render')->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    public function testHandlePostPassesBodyToCommand(): void
+    {
+        $request = $this->createStub(ServerRequestInterface::class);
+        $request->method('getParsedBody')->willReturn(['title' => 'first note', 'body' => 'note body']);
+        $request->method('getMethod')->willReturn('POST');
+
+        $createResult = $this->createStub(ResultInterface::class);
+
+        $rows = [['id' => 1, 'title' => 'first note', 'body' => 'note body']];
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::exactly(2))
+            ->method('handle')
+            ->willReturnCallback(
+                function (object $message) use ($createResult, $rows): ResultInterface {
+                    if ($message instanceof CreateNoteCommand) {
+                        self::assertSame('note body', $message->body);
+
+                        return $createResult;
+                    }
+
+                    return $this->listResult($rows);
+                },
+            );
+
+        $template = $this->createMock(TemplateRendererInterface::class);
+        $template->expects(self::once())
+            ->method('render')
+            ->with('app::notes-list', ['notes' => $rows])
+            ->willReturn('<section id="notes-list">list</section>');
+
+        $handler  = new NoteCommandHandler($bus, $template);
+        $response = $handler->handle($request);
+
+        self::assertSame(200, $response->getStatusCode());
     }
 
     public function testHandlePostReturnsErrorFragmentWhenTitleMissing(): void

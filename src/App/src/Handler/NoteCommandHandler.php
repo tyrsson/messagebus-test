@@ -11,6 +11,7 @@ use App\Query\ListNotesQuery;
 use Fig\Http\Message\RequestMethodInterface as HttpMethod;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Mezzio\Template\TemplateRendererInterface;
+use Override;
 use Psl\Type;
 use Psl\Type\Exception\AssertException;
 use Psr\Http\Message\ResponseInterface;
@@ -26,6 +27,10 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
         private TemplateRendererInterface $template,
     ) {}
 
+    /**
+     * @throws AssertException when the route id attribute is missing or empty.
+     */
+    #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         return match ($request->getMethod()) {
@@ -48,6 +53,7 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
         );
     }
 
+    /** @throws AssertException when the route id attribute is missing or empty. */
     private function handleDelete(ServerRequestInterface $request): ResponseInterface
     {
         $id = Type\non_empty_string()->assert($request->getAttribute('id'));
@@ -61,18 +67,26 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
         return $this->renderList();
     }
 
+    /** @throws AssertException when the route id attribute is missing or empty. */
     private function handlePatch(ServerRequestInterface $request): ResponseInterface
     {
         $id = Type\non_empty_string()->assert($request->getAttribute('id'));
         try {
-            $title = Type\shape(['title' => Type\non_empty_string()], allowUnknownFields: true)->assert(
-                $request->getParsedBody(),
-            )['title'];
+            $data = Type\shape(
+                [
+                    'title' => Type\non_empty_string(),
+                    'body'  => Type\optional(Type\string()),
+                ],
+                allowUnknownFields: true,
+            )->assert($request->getParsedBody());
+            $title     = $data['title'];
+            $bodyValue = $data['body'] ?? '';
+            $body      = $bodyValue !== '' ? $bodyValue : null;
         } catch (AssertException) {
             return $this->error('title is required');
         }
 
-        $result = $this->bus->handle(new UpdateNoteCommand($id, $title));
+        $result = $this->bus->handle(new UpdateNoteCommand($id, $title, $body));
 
         if ($result->getStatus() === MessageStatus::Failure) {
             return $this->error('note not found');
@@ -84,14 +98,21 @@ final readonly class NoteCommandHandler implements RequestHandlerInterface
     private function handlePost(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            $title = Type\shape(['title' => Type\non_empty_string()], allowUnknownFields: true)->assert(
-                $request->getParsedBody(),
-            )['title'];
+            $data = Type\shape(
+                [
+                    'title' => Type\non_empty_string(),
+                    'body'  => Type\optional(Type\string()),
+                ],
+                allowUnknownFields: true,
+            )->assert($request->getParsedBody());
+            $title     = $data['title'];
+            $bodyValue = $data['body'] ?? '';
+            $body      = $bodyValue !== '' ? $bodyValue : null;
         } catch (AssertException) {
             return $this->error('title is required');
         }
 
-        $this->bus->handle(new CreateNoteCommand($title));
+        $this->bus->handle(new CreateNoteCommand($title, $body));
 
         return $this->renderList();
     }

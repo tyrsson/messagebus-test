@@ -34,7 +34,7 @@ final class UpdateNoteHandlerTest extends TestCase
         $gateway->method('updateWith')->willReturn(1);
 
         $handler = new UpdateNoteHandler($gateway);
-        $result  = $handler->updateNoteCommand(new UpdateNoteCommand('1', 'renamed'));
+        $result  = $handler->updateNoteCommand(new UpdateNoteCommand('1', 'renamed', 'renamed body'));
 
         self::assertInstanceOf(CommandResult::class, $result);
         self::assertSame(MessageStatus::Success, $result->getStatus());

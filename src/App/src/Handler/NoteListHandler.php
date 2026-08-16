@@ -7,6 +7,7 @@ namespace App\Handler;
 use App\Query\ListNotesQuery;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Mezzio\Template\TemplateRendererInterface;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -19,6 +20,7 @@ final readonly class NoteListHandler implements RequestHandlerInterface
         private TemplateRendererInterface $template,
     ) {}
 
+    #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $result = $this->bus->handle(new ListNotesQuery());

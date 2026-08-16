@@ -20,7 +20,8 @@ A single demo entity, `Note`, backed by a `notes` table:
 | Column       | Type                        | Notes                                   |
 |--------------|-----------------------------|------------------------------------------|
 | `id`         | `INT AUTO_INCREMENT`        | Primary key                              |
-| `title`      | `VARCHAR(255)`              | User-supplied                            |
+| `title`      | `VARCHAR(255)`              | User-supplied, required                  |
+| `body`       | `TEXT`                      | Optional free text, nullable             |
 | `created_at` | `TIMESTAMP`                 | `DEFAULT CURRENT_TIMESTAMP`, set by MySQL |
 
 ## Namespace layout (module `App`, root `src/App/src`)

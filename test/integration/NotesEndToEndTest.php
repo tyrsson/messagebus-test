@@ -40,7 +40,7 @@ final class NotesEndToEndTest extends TestCase
     {
         $bus = self::$container->get(MessageBusInterface::class);
 
-        $createResult = $bus->handle(new CreateNoteCommand('integration test note'));
+        $createResult = $bus->handle(new CreateNoteCommand('integration test note', 'integration body'));
         self::assertInstanceOf(CommandResultInterface::class, $createResult);
         self::assertSame(MessageStatus::Success, $createResult->getStatus());
 
@@ -48,7 +48,13 @@ final class NotesEndToEndTest extends TestCase
         self::assertIsArray($created);
         $id = $created['id'];
 
-        $updateResult = $bus->handle(new UpdateNoteCommand((string) $id, 'integration test note (updated)'));
+        $updateResult = $bus->handle(
+            new UpdateNoteCommand(
+                (string) $id,
+                'integration test note (updated)',
+                'integration body (updated)',
+            ),
+        );
         self::assertSame(MessageStatus::Success, $updateResult->getStatus());
 
         $listResult = $bus->handle(new ListNotesQuery());
@@ -59,6 +65,7 @@ final class NotesEndToEndTest extends TestCase
 
         $updatedTitles = array_column($notes, 'title');
         self::assertContains('integration test note (updated)', $updatedTitles);
+        self::assertContains('integration body (updated)', array_column($notes, 'body'));
     }
 
     public function testDeleteOfMissingNoteFails(): void

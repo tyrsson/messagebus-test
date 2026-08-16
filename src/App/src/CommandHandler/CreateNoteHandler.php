@@ -23,10 +23,11 @@ final readonly class CreateNoteHandler implements CommandHandlerInterface
         private EventDispatcherInterface $eventDispatcher,
     ) {}
 
+    /** @throws RuntimeException when the generated id cannot be determined. */
     public function createNoteCommand(CreateNoteCommand $command): CommandResult
     {
         $insert = new Insert(self::TABLE);
-        $insert->values(['title' => $command->title]);
+        $insert->values(['title' => $command->title, 'body' => $command->body]);
 
         $this->notes->insertWith($insert);
         $id = $this->notes->getLastInsertValue();
